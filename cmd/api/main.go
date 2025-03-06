@@ -43,15 +43,12 @@ func main() {
 		config: cfg,
 		logger: logger,
 	}
-	// 创建复用路由
-	mux := http.NewServeMux()
-	mux.HandleFunc("/v1/healthcheck", app.healthcheckHandler)
 	// 初始化服务器信息
 	srv := http.Server{
 		// 初始化端口
 		Addr: fmt.Sprintf(":%d", cfg.port),
 		// 初始化路由
-		Handler: mux,
+		Handler: app.routers(),
 		// 初始化各种操作的超时时间
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second,
