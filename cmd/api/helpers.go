@@ -7,6 +7,9 @@ import (
 	"strings"
 )
 
+// 用于折嵌套Json 使用key匹配interface{}数据
+type envelop map[string]interface{}
+
 // 将用于提取id的代码逻辑抽象成一个模块
 func (app *application) readIDParam(c *gin.Context) (int64, error) {
 	params := c.Param("id")
@@ -18,9 +21,10 @@ func (app *application) readIDParam(c *gin.Context) (int64, error) {
 	return id, nil
 }
 
-// 发送json数据到响应体
-func (app *application) writeJson(c *gin.Context, status int, data interface{}, header http.Header) {
-	c.JSON(status, data)
+// 发送json数据到响应体 将data的类型更改为自定义类型用于折叠Json
+func (app *application) writeJson(c *gin.Context, status int, data envelop, header http.Header) {
+	// 使json的输出更加美观
+	c.IndentedJSON(status, data)
 	// 向响应体中添加传入的表头
 	for key, val := range header {
 		// 将 []string 转换为 string，多个值以逗号分隔

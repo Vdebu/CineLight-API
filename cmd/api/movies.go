@@ -26,6 +26,6 @@ func (app *application) showMovieHandler(c *gin.Context) {
 		Genres:    []string{"anime", "miku"},
 		Version:   1,
 	}
-	// 将电影的信息以json的形式输出
-	app.writeJson(c, http.StatusOK, movie, nil)
+	// 将电影的信息以json的形式输出 使用自定义类型进行封装以呈现出嵌套展示的效果
+	app.writeJson(c, http.StatusOK, envelop{"movie": movie}, nil)
 }
