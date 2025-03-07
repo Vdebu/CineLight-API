@@ -2,7 +2,9 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	"greenlight.vdebu.net/internal/data"
 	"net/http"
+	"time"
 )
 
 func (app *application) createMovieHandler(c *gin.Context) {
@@ -15,5 +17,15 @@ func (app *application) showMovieHandler(c *gin.Context) {
 		c.String(http.StatusNotFound, "movie id not found\n")
 		return
 	}
-	c.String(http.StatusOK, "show the details of movie:%d\n", id)
+	movie := data.Movie{
+		ID:        id,
+		CreatedAt: time.Now(),
+		Title:     "Project Sekai",
+		Year:      2025,
+		Runtime:   3939,
+		Genres:    []string{"anime", "miku"},
+		Version:   1,
+	}
+	// 将电影的信息以json的形式输出
+	app.writeJson(c, http.StatusOK, movie, nil)
 }
