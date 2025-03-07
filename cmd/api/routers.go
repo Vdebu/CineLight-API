@@ -5,6 +5,7 @@ import "github.com/gin-gonic/gin"
 func (app *application) routers() *gin.Engine {
 	// 创建复用路由
 	router := gin.Default()
+	router.HandleMethodNotAllowed = true
 	// 使用路由分组 会自动以/v1作为前缀
 	v1 := router.Group("/v1")
 	{

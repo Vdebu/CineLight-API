@@ -14,7 +14,7 @@ func (app *application) showMovieHandler(c *gin.Context) {
 	// 使用抽象出来的数据读取模块提取id
 	id, err := app.readIDParam(c)
 	if err != nil {
-		c.String(http.StatusNotFound, "movie id not found\n")
+		app.notFoundResponse(c)
 		return
 	}
 	movie := data.Movie{
