@@ -11,10 +11,10 @@ import (
 func (app *application) createMovieHandler(c *gin.Context) {
 	// 创建结构体存储待解析的JSON数据 这个结构体是完整Movie结构体的子集
 	var input struct {
-		Title   string   `json:"title"`
-		Year    int32    `json:"year"`
-		Runtime int32    `json:"runtime"`
-		Genres  []string `json:"genres"`
+		Title   string       `json:"title"`
+		Year    int32        `json:"year"`
+		Runtime data.Runtime `json:"runtime"` // 使用自定义数据存储时间
+		Genres  []string     `json:"genres"`
 	}
 	err := app.readJSON(c, &input)
 	if err != nil {
