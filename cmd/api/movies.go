@@ -16,13 +16,12 @@ func (app *application) createMovieHandler(c *gin.Context) {
 		Runtime int32    `json:"runtime"`
 		Genres  []string `json:"genres"`
 	}
-	// 使用Gin的内置方法对请求体中的JSON数据进行解析
-	if err := c.ShouldBindJSON(&input); err != nil {
+	err := app.readJSON(c, &input)
+	if err != nil {
 		// 向响应体中输出错误信息
-		app.errorResponse(c, http.StatusBadRequest, err.Error())
+		app.badRequestResponse(c, err)
+		return
 	}
-	// 使用Windows发送 必须将引号转义
-	// curl -i -d "{\"title\":\"Moana\",\"year\":2016,\"runtime\":107,\"genres\":[\"animation\",\"adventure\"]}" http://localhost:3939/v1/movies
 	// 将提取到的信息作为响应体输出
 	fmt.Fprintf(c.Writer, "%+v\n", input)
 }

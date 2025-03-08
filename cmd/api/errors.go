@@ -43,3 +43,8 @@ func (app *application) methodNotAllowedResponse(c *gin.Context) {
 	// 输出到响应体
 	app.errorResponse(c, http.StatusMethodNotAllowed, msg)
 }
+
+// 返回Bad request信息
+func (app *application) badRequestResponse(c *gin.Context, err error) {
+	app.errorResponse(c, http.StatusBadRequest, err.Error())
+}
