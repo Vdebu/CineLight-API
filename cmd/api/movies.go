@@ -23,27 +23,16 @@ func (app *application) createMovieHandler(c *gin.Context) {
 		app.badRequestResponse(c, err)
 		return
 	}
-	// 数据提取成功后初始化校验器
+	// 数据提取成功后初始化校验器 以后可能会有各种各样的校验器
 	v := validator.New()
-	// 对输入的各个字段进行检查
-	v.Check(input.Title != "", "title", "must be provided")
-	v.Check(len(input.Title) <= 500, "title", "must not be more than 500 bytes long")
-
-	v.Check(input.Year != 0, "year", "must be provided")
-	v.Check(input.Year >= 1888, "year", "must be greater than 1888")
-	v.Check(input.Year <= int32(time.Now().Year()), "year", "year must not be in the future")
-
-	v.Check(input.Runtime != 0, "runtime", "must be provided")
-	v.Check(input.Runtime > 0, "runtime", "must be positive integer")
-
-	v.Check(input.Genres != nil, "genres", "must be provided")
-	v.Check(len(input.Genres) >= 1, "genres", "must contain at least 1 genre")
-	v.Check(len(input.Genres) <= 5, "genres", "must not contain more than 5 genres")
-	// 查看是否有标签是重复的
-	v.Check(validator.Unique(input.Genres), "genres", "must not contain duplicate values")
-	// 检查是否通过检测
-	if !v.Valid() {
-		// 输出错误信息并结束当前请求
+	// 将输入的信息载入Movie结构体用于后续检测
+	movie := &data.Movie{
+		Title:   input.Title,
+		Year:    input.Year,
+		Runtime: input.Runtime,
+		Genres:  input.Genres,
+	}
+	if data.ValidateMovie(v, movie); !v.Valid() {
 		app.failedValidationResponse(c, v.Errors)
 		return
 	}
