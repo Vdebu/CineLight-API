@@ -48,3 +48,9 @@ func (app *application) methodNotAllowedResponse(c *gin.Context) {
 func (app *application) badRequestResponse(c *gin.Context, err error) {
 	app.errorResponse(c, http.StatusBadRequest, err.Error())
 }
+
+// 输出验证错误信息
+func (app *application) failedValidationResponse(c *gin.Context, errors map[string]string) {
+	// 直接将整个用于记录错误的字典以JSON形式输出
+	app.errorResponse(c, http.StatusUnprocessableEntity, errors)
+}
