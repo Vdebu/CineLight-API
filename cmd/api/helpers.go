@@ -38,7 +38,17 @@ func (app *application) writeJson(c *gin.Context, status int, data envelop, head
 }
 
 func (app *application) readJSON(c *gin.Context, dst interface{}) error {
-	err := c.BindJSON(dst)
+	// 通过重新定义gin的请求体限制JSON请求体的大小 防止服务器资源耗尽
+	// 这里限制为1mb
+	maxBytes := 1 << 20
+	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, int64(maxBytes))
+	// 使用自定义解析器解析JSON数据 Gin本身并没有能防止未知字段的方法
+	dec := json.NewDecoder(c.Request.Body)
+	// 拒绝未知字段 如果JSON中包含未知字段会直接报错
+	dec.DisallowUnknownFields()
+	// err := c.BindJSON(dst)
+	// 使用自定义解析器解析数据
+	err := dec.Decode(dst)
 	if err != nil {
 		// 尝试判断错误的类型
 		var syntaxError *json.SyntaxError
@@ -56,18 +66,32 @@ func (app *application) readJSON(c *gin.Context, dst interface{}) error {
 			}
 			return fmt.Errorf("body contains incorrect JSON type (at character %d)", unmarshalTypeError.Offset)
 		case errors.Is(err, io.ErrUnexpectedEOF):
-			// 有些情况下也会返回io.ErrunexpectedEOF
+			// 有些情况下也会返回io.errUnexpectedEOF
 			return errors.New("body contains badly-formed JSON")
 		case errors.As(err, &invalidUnmashalError):
 			// 传入的是空指针 直接panic
 			panic(err)
-		case errors.As(err, &io.EOF):
+		case errors.Is(err, io.EOF):
 			// 响应体是空值
 			return errors.New("body must not be empty")
+		case strings.HasPrefix(err.Error(), "json: unknown field"):
+			// 检查是否包含未知字段的错误前缀
+			// 如果包含则将字段名<name>提取并包装为错误返回
+			fieldName := strings.TrimPrefix(err.Error(), "json: unknown field")
+			return fmt.Errorf("body contains unknown key %s", fieldName)
+		case err.Error() == "http: request body too large":
+			return fmt.Errorf("body must not be larger than %d bytes", maxBytes)
 		default:
 			// 不是上述的任一种类型
 			return err
 		}
+	}
+	// 再次调用解析器检查是否有额外的数据被输入
+	err = dec.Decode(&struct {
+	}{})
+	if err != io.EOF {
+		// 有额外的数据存在返回错误
+		return errors.New("body must only contain a single JSON value")
 	}
 	return nil
 }
