@@ -21,7 +21,10 @@ type config struct {
 	port int    // 端口
 	env  string // 运行环境
 	db   struct {
-		dsn string // 在服务器配置中存储dsn
+		dsn          string // 在服务器配置中存储dsn
+		maxOpenConns int    // 最大同时建立的连接数(active + idle)
+		maxIdleConns int    // 最大惰性连接数 maxIdleConns <= maxOpenConns
+		maxIdleTime  string // 在连接持续处于惰性一段时间后将其关闭
 	}
 }
 
@@ -41,6 +44,11 @@ func main() {
 	// 默认从系统的环境变量中获取服务器的数据库DSN(data source name)
 	// PostgreSQL驱动可能会使用 SSL连接如果服务器没有启用 SSL需要在 DSN 中添加参数来禁用SSL
 	flag.StringVar(&cfg.db.dsn, "db-dsn", os.Getenv("GREENLIGHT_DB_DSN"), "PostgreSQL DSN")
+	// 服务器数据库连接池的配置
+	flag.IntVar(&cfg.db.maxOpenConns, "db-max-open-conns", 25, "PostgreSQL max open connections")
+	flag.IntVar(&cfg.db.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL max idle connections")
+	flag.StringVar(&cfg.db.maxIdleTime, "db-max-idle-time", "15m", "PostgreSQL max connection idle time")
+
 	// 解析命令行参数
 	flag.Parse()
 	// 初始化服务器内部的日志工具
@@ -84,6 +92,17 @@ func openDB(cfg config) (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
+	// 设置建立的最大连接数
+	db.SetMaxOpenConns(cfg.db.maxOpenConns)
+	// 设置最大的惰性链接数
+	db.SetMaxIdleConns(cfg.db.maxIdleConns)
+	// 设置清理惰性链接的时间
+	// 使用ParseDuration对字符串形式的时间进行转换(15m)
+	duration, err := time.ParseDuration(cfg.db.maxIdleTime)
+	if err != nil {
+		return nil, err
+	}
+	db.SetConnMaxIdleTime(duration)
 	// 创建Context 在5秒连接超时后关闭连接
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	// 超时后关闭连接
