@@ -1,6 +1,7 @@
 package data
 
 import (
+	"database/sql"
 	"greenlight.vdebu.net/internal/validator"
 	"time"
 )
@@ -35,4 +36,29 @@ func ValidateMovie(v *validator.Validator, movie *Movie) {
 	// 查看是否有标签是重复的
 	v.Check(validator.Unique(movie.Genres), "genres", "must not contain duplicate values")
 
+}
+
+// 创建模型存储数据库连接池
+type MovieModel struct {
+	db *sql.DB
+}
+
+// 向数据库插入新数据
+func (m *MovieModel) Insert(movie *Movie) error {
+	return nil
+}
+
+// 使用id从数据库中查找数据
+func (m *MovieModel) Get(id int64) (*Movie, error) {
+	return nil, nil
+}
+
+// 根据新数据更新数据库
+func (m *MovieModel) Update(movie *Movie) error {
+	return nil
+}
+
+// 根据id从数据库中删除数据
+func (m *MovieModel) Delete(id int64) error {
+	return nil
 }

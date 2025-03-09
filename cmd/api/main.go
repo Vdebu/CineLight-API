@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"flag"
 	"fmt"
+	"greenlight.vdebu.net/internal/data"
 	"log"
 	"net/http"
 	"os"
@@ -32,6 +33,7 @@ type config struct {
 type application struct {
 	config config
 	logger *log.Logger
+	models data.Models
 }
 
 func main() {
@@ -63,10 +65,13 @@ func main() {
 	// 程序结束时关闭数据库的连接
 	defer db.Close()
 	logger.Println("db connection established...")
+	// 初始化模型依赖
+	models := data.NewModels(db)
 	// 初始化依赖
 	app := &application{
 		config: cfg,
 		logger: logger,
+		models: models,
 	}
 	// 初始化服务器信息
 	srv := http.Server{
