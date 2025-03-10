@@ -86,7 +86,16 @@ func (m *MovieModel) Get(id int64) (*Movie, error) {
 
 // 根据新数据更新数据库
 func (m *MovieModel) Update(movie *Movie) error {
-	return nil
+	// 通过id更新数据这里必须将所有信息填写完整才能进行更新
+	// 更新成功后返回新的版本信息
+	stmt := `UPDATE movies
+			SET title = $1,year = $2,runtime = $3,genres = $4,version = version + 1
+			WHERE id = $5
+			RETURNING version`
+	// 存储要使用的参数
+	args := []interface{}{movie.Title, movie.Year, movie.Runtime, pq.Array(movie.Genres), movie.Version}
+	// 执行更新操作 将返回的新版本信息填写进传入的movie
+	return m.db.QueryRow(stmt, args...).Scan(&movie.Version)
 }
 
 // 根据id从数据库中删除数据

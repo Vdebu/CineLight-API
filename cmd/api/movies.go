@@ -60,13 +60,65 @@ func (app *application) showMovieHandler(c *gin.Context) {
 	movie, err := app.models.Movies.Get(id)
 	if err != nil {
 		// 判断错误类型是否是无记录
-		if errors.Is(err, data.ErrRecordNotFound) {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
 			app.notFoundResponse(c)
-		} else {
+		default:
 			app.serverErrorResponse(c, err)
+
 		}
 		return
 	}
 	// 将电影的信息以json的形式输出 使用自定义类型进行封装以呈现出嵌套展示的效果
+	app.writeJson(c, http.StatusOK, envelop{"movie": movie}, nil)
+}
+func (app *application) updateMovieHandler(c *gin.Context) {
+	id, err := app.readIDParam(c)
+	if err != nil {
+		app.notFoundResponse(c)
+	}
+	movie, err := app.models.Movies.Get(id)
+	if err != nil {
+		// 检查错误类型 在这里可以用switch进行检查
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(c)
+		default:
+			app.serverErrorResponse(c, err)
+		}
+		return
+	}
+	// 从请求体中获取新的信息
+	var input struct {
+		Title   string       `json:"title"`
+		Year    int32        `json:"year"`
+		Runtime data.Runtime `json:"runtime"`
+		Genres  []string     `json:"genres"`
+	}
+	err = app.readJSON(c, &input)
+	if err != nil {
+		// 输入了错误的信息 bad request
+		app.badRequestResponse(c, err)
+		return
+	}
+	// 将从数据库中提取到的信息替换为最新的信息
+	movie.Title = input.Title
+	movie.Year = input.Year
+	movie.Runtime = input.Runtime
+	movie.Genres = input.Genres
+	// 检查输入的信息是否有效
+	v := validator.New()
+	if data.ValidateMovie(v, movie); !v.Valid() {
+		// 验证失败 传入验证器的ErrorsField输出错误提示
+		app.failedValidationResponse(c, v.Errors)
+		return
+	}
+	// 更新数据库中的数据
+	err = app.models.Movies.Update(movie)
+	if err != nil {
+		app.serverErrorResponse(c, err)
+		return
+	}
+	// 向响应体输出更改成功后的新数据
 	app.writeJson(c, http.StatusOK, envelop{"movie": movie}, nil)
 }

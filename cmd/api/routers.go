@@ -13,6 +13,7 @@ func (app *application) routers() *gin.Engine {
 		v1.GET("/healthcheck", app.healthcheckHandler)
 		v1.POST("/movies", app.createMovieHandler)
 		v1.GET("/movies/:id", app.showMovieHandler)
+		v1.PUT("/movies/:id", app.updateMovieHandler)
 	}
 
 	return router
