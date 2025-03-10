@@ -2,6 +2,7 @@ package data
 
 import (
 	"database/sql"
+	"github.com/lib/pq"
 	"greenlight.vdebu.net/internal/validator"
 	"time"
 )
@@ -45,7 +46,15 @@ type MovieModel struct {
 
 // 向数据库插入新数据
 func (m *MovieModel) Insert(movie *Movie) error {
-	return nil
+	// 插入的SQL语句
+	// $N是Postgresql 特殊占位符
+	stmt := `INSERT INTO movies (title,year,runtime,genres)
+				VALUES ($1,$2,$3,$4)
+				RETURNING id,created_at,version` // 提取数据库自动生成的信息写入传入的结构体
+	// 插入三个以上的数据(三个以上的占位符) 使用[]interface{}进行存储并作为参数传入 注意进行类型转换
+	args := []interface{}{movie.Title, movie.Year, movie.Runtime, pq.Array(movie.Genres)}
+	// 将RETURNING返回的数据插入传进来的数据(默认为空值)
+	return m.db.QueryRow(stmt, args...).Scan(&movie.ID, &movie.CreatedAt, &movie.Version)
 }
 
 // 使用id从数据库中查找数据

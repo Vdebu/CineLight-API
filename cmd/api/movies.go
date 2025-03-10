@@ -25,7 +25,7 @@ func (app *application) createMovieHandler(c *gin.Context) {
 	}
 	// 数据提取成功后初始化校验器 以后可能会有各种各样的校验器
 	v := validator.New()
-	// 将输入的信息载入Movie结构体用于后续检测
+	// 将输入的信息载入Movie结构体用于后续检测(这里创建的是movie指针 用于后续填写自动生成的信息)
 	movie := &data.Movie{
 		Title:   input.Title,
 		Year:    input.Year,
@@ -36,8 +36,18 @@ func (app *application) createMovieHandler(c *gin.Context) {
 		app.failedValidationResponse(c, v.Errors)
 		return
 	}
-	// 将提取到的信息作为响应体输出
-	fmt.Fprintf(c.Writer, "%+v\n", input)
+	// 尝试将用户输入的信息插入到数据库中
+	err = app.models.Movies.Insert(movie)
+	if err != nil {
+		app.serverErrorResponse(c, err)
+		return
+	}
+	// 插入成功后向响应头写入数据展示新信息的存储位置
+	headers := make(http.Header)
+	// 设置Location属性
+	headers.Set("Location", fmt.Sprintf("/v1/movies/%d", movie.ID))
+	// 返回创建好的JSON信息
+	app.writeJson(c, http.StatusOK, envelop{"movie": movie}, headers)
 }
 func (app *application) showMovieHandler(c *gin.Context) {
 	// 使用抽象出来的数据读取模块提取id
