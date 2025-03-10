@@ -86,7 +86,7 @@ func (app *application) readJSON(c *gin.Context, dst interface{}) error {
 			return err
 		}
 	}
-	// 再次调用解析器检查是否有额外的数据被输入
+	// 创建空的struct并再次调用解析器检查是否有额外的数据被输入
 	err = dec.Decode(&struct {
 	}{})
 	if err != io.EOF {

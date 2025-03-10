@@ -100,5 +100,20 @@ func (m *MovieModel) Update(movie *Movie) error {
 
 // 根据id从数据库中删除数据
 func (m *MovieModel) Delete(id int64) error {
+	// 先判断id的基础有效性防止进行不必要的查询
+	if id < 1 {
+		return ErrRecordNotFound
+	}
+	stmt := `DELETE FROM movies WHERE id = $1`
+	result, err := m.db.Exec(stmt, id)
+	if err != nil {
+		return err
+	}
+	// 获取受影响的行数检查是否删除成功
+	rowAffected, err := result.RowsAffected()
+	// 如果没有行收到影响则为删除失败
+	if rowAffected == 0 {
+		return ErrRecordNotFound
+	}
 	return nil
 }

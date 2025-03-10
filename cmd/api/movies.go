@@ -122,3 +122,24 @@ func (app *application) updateMovieHandler(c *gin.Context) {
 	// 向响应体输出更改成功后的新数据
 	app.writeJson(c, http.StatusOK, envelop{"movie": movie}, nil)
 }
+func (app *application) deleteMovieHandler(c *gin.Context) {
+	// 获取需要删除的movie id
+	id, err := app.readIDParam(c)
+	if err != nil {
+		// not found
+		app.notFoundResponse(c)
+		return
+	}
+	// 尝试进行删除
+	err = app.models.Movies.Delete(id)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(c)
+		default:
+			app.serverErrorResponse(c, err)
+		}
+	}
+	// 提示删除成功
+	app.writeJson(c, http.StatusOK, envelop{"movie": "movie successfully deleted"}, nil)
+}

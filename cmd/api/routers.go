@@ -14,7 +14,7 @@ func (app *application) routers() *gin.Engine {
 		v1.POST("/movies", app.createMovieHandler)
 		v1.GET("/movies/:id", app.showMovieHandler)
 		v1.PUT("/movies/:id", app.updateMovieHandler)
+		v1.DELETE("/movies/:id", app.deleteMovieHandler)
 	}
-
 	return router
 }
