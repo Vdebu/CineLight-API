@@ -19,7 +19,7 @@ func (app *application) errorResponse(c *gin.Context, status int, message interf
 	app.writeJson(c, status, env, nil)
 }
 
-// 记录服务器在运行时发生的错误
+// 记录服务器在运行时发生的错误(sql查询等)
 func (app *application) serverErrorResponse(c *gin.Context, err error) {
 	// 生成当前错误的日志
 	app.logError(c, err)
@@ -29,7 +29,7 @@ func (app *application) serverErrorResponse(c *gin.Context, err error) {
 	app.errorResponse(c, http.StatusInternalServerError, msg)
 }
 
-// 发送NOT FOUND状态码与Json内容
+// 发送NOT FOUND状态码与Json内容(找不到对应id的记录)
 func (app *application) notFoundResponse(c *gin.Context) {
 	// 初始化Json字符串
 	msg := "the requested resource could not be found..."
@@ -37,6 +37,7 @@ func (app *application) notFoundResponse(c *gin.Context) {
 	app.errorResponse(c, http.StatusNotFound, msg)
 }
 
+// 提示当前请求方法不被允许
 func (app *application) methodNotAllowedResponse(c *gin.Context) {
 	// 初始化Json字符串
 	msg := fmt.Sprintf("the %s method is not supported for this resource...", c.Request.Method)

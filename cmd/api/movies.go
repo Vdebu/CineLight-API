@@ -1,12 +1,12 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"greenlight.vdebu.net/internal/data"
 	"greenlight.vdebu.net/internal/validator"
 	"net/http"
-	"time"
 )
 
 func (app *application) createMovieHandler(c *gin.Context) {
@@ -56,14 +56,16 @@ func (app *application) showMovieHandler(c *gin.Context) {
 		app.notFoundResponse(c)
 		return
 	}
-	movie := data.Movie{
-		ID:        id,
-		CreatedAt: time.Now(),
-		Title:     "Project Sekai",
-		Year:      2025,
-		Runtime:   3939,
-		Genres:    []string{"anime", "miku"},
-		Version:   1,
+	// 从数据库查找数据
+	movie, err := app.models.Movies.Get(id)
+	if err != nil {
+		// 判断错误类型是否是无记录
+		if errors.Is(err, data.ErrRecordNotFound) {
+			app.notFoundResponse(c)
+		} else {
+			app.serverErrorResponse(c, err)
+		}
+		return
 	}
 	// 将电影的信息以json的形式输出 使用自定义类型进行封装以呈现出嵌套展示的效果
 	app.writeJson(c, http.StatusOK, envelop{"movie": movie}, nil)

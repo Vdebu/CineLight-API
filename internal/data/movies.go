@@ -2,6 +2,7 @@ package data
 
 import (
 	"database/sql"
+	"errors"
 	"github.com/lib/pq"
 	"greenlight.vdebu.net/internal/validator"
 	"time"
@@ -59,7 +60,28 @@ func (m *MovieModel) Insert(movie *Movie) error {
 
 // 使用id从数据库中查找数据
 func (m *MovieModel) Get(id int64) (*Movie, error) {
-	return nil, nil
+	// 避免进行不必要的数据库查询
+	if id < 1 {
+		// 记录是从1开始的
+		return nil, ErrRecordNotFound
+	}
+	stmt := `SELECT id,created_at,title,year,runtime,genres,version 
+			FROM movies
+			WHERE id = $1`
+	// 存储查询到的数据
+	var movie Movie
+	// 使用pq.Array()对查询到的数据进行转换以后存入结构体
+	err := m.db.QueryRow(stmt, id).Scan(
+		&movie.ID, &movie.CreatedAt, &movie.Title, &movie.Year, &movie.Runtime, pq.Array(&movie.Genres), &movie.Version)
+	if err != nil {
+		// 判断是不是sql的no row 错误
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrRecordNotFound
+		}
+		// 返回其他错误
+		return nil, err
+	}
+	return &movie, nil
 }
 
 // 根据新数据更新数据库
