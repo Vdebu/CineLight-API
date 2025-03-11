@@ -86,16 +86,26 @@ func (m *MovieModel) Get(id int64) (*Movie, error) {
 
 // 根据新数据更新数据库
 func (m *MovieModel) Update(movie *Movie) error {
-	// 通过id更新数据这里必须将所有信息填写完整才能进行更新
-	// 更新成功后返回新的版本信息
+	// 通过id更新数据 更新成功后返回新的版本信息
+	// 基于表中的VERSION字段实现乐观锁
 	stmt := `UPDATE movies
 			SET title = $1,year = $2,runtime = $3,genres = $4,version = version + 1
-			WHERE id = $5
+			WHERE id = $5 AND version = $6
 			RETURNING version`
 	// 存储要使用的参数
-	args := []interface{}{movie.Title, movie.Year, movie.Runtime, pq.Array(movie.Genres), movie.Version}
-	// 执行更新操作 将返回的新版本信息填写进传入的movie
-	return m.db.QueryRow(stmt, args...).Scan(&movie.Version)
+	args := []interface{}{movie.Title, movie.Year, movie.Runtime, pq.Array(movie.Genres), movie.ID, movie.Version}
+	// 判断当前目标的VERSION字段是否发生了变化
+	err := m.db.QueryRow(stmt, args...).Scan(&movie.Version)
+	if err != nil {
+		// 判断错误类型 如果是NoRows则说明VERSION不一致 发生了冲突
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return ErrEditConflict
+		default:
+			return err
+		}
+	}
+	return nil
 }
 
 // 根据id从数据库中删除数据

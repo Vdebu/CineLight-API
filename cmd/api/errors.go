@@ -55,3 +55,10 @@ func (app *application) failedValidationResponse(c *gin.Context, errors map[stri
 	// 直接将整个用于记录错误的字典以JSON形式输出
 	app.errorResponse(c, http.StatusUnprocessableEntity, errors)
 }
+
+// 返回修改冲突
+func (app *application) editConflictResponse(c *gin.Context) {
+	msg := "unable to update the record due to an edit conflict, please try again later"
+	// 传入HTTP冲突状态码
+	app.errorResponse(c, http.StatusConflict, msg)
+}

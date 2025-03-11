@@ -81,8 +81,9 @@ func (app *application) updateMovieHandler(c *gin.Context) {
 	if err != nil {
 		// 检查错误类型 在这里可以用switch进行检查
 		switch {
-		case errors.Is(err, data.ErrRecordNotFound):
-			app.notFoundResponse(c)
+		case errors.Is(err, data.ErrEditConflict):
+			// 检查错误是否是修改冲突造成的
+			app.editConflictResponse(c)
 		default:
 			app.serverErrorResponse(c, err)
 		}
