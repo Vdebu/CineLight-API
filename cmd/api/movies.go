@@ -88,12 +88,12 @@ func (app *application) updateMovieHandler(c *gin.Context) {
 		}
 		return
 	}
-	// 从请求体中获取新的信息
+	// 从请求体中获取新的信息 使用指针存储输入的数据(区分nil与空值)
 	var input struct {
-		Title   string       `json:"title"`
-		Year    int32        `json:"year"`
-		Runtime data.Runtime `json:"runtime"`
-		Genres  []string     `json:"genres"`
+		Title   *string       `json:"title"`
+		Year    *int32        `json:"year"`
+		Runtime *data.Runtime `json:"runtime"`
+		Genres  []string      `json:"genres"`
 	}
 	err = app.readJSON(c, &input)
 	if err != nil {
@@ -101,11 +101,19 @@ func (app *application) updateMovieHandler(c *gin.Context) {
 		app.badRequestResponse(c, err)
 		return
 	}
-	// 将从数据库中提取到的信息替换为最新的信息
-	movie.Title = input.Title
-	movie.Year = input.Year
-	movie.Runtime = input.Runtime
-	movie.Genres = input.Genres
+	// 判断是否用户输入的再将从数据库中提取到的信息替换为最新的信息
+	if input.Title != nil {
+		movie.Title = *input.Title
+	}
+	if input.Year != nil {
+		movie.Year = *input.Year
+	}
+	if input.Runtime != nil {
+		movie.Runtime = *input.Runtime
+	}
+	if input.Genres != nil {
+		movie.Genres = input.Genres
+	}
 	// 检查输入的信息是否有效
 	v := validator.New()
 	if data.ValidateMovie(v, movie); !v.Valid() {
