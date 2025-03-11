@@ -1,6 +1,7 @@
 package data
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"github.com/lib/pq"
@@ -55,7 +56,10 @@ func (m *MovieModel) Insert(movie *Movie) error {
 	// 插入三个以上的数据(三个以上的占位符) 使用[]interface{}进行存储并作为参数传入 注意进行类型转换
 	args := []interface{}{movie.Title, movie.Year, movie.Runtime, pq.Array(movie.Genres)}
 	// 将RETURNING返回的数据插入传进来的数据(默认为空值)
-	return m.db.QueryRow(stmt, args...).Scan(&movie.ID, &movie.CreatedAt, &movie.Version)
+	// 创建ctx实现DeadLine
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel()
+	return m.db.QueryRowContext(ctx, stmt, args...).Scan(&movie.ID, &movie.CreatedAt, &movie.Version)
 }
 
 // 使用id从数据库中查找数据
@@ -70,8 +74,15 @@ func (m *MovieModel) Get(id int64) (*Movie, error) {
 			WHERE id = $1`
 	// 存储查询到的数据
 	var movie Movie
-	// 使用pq.Array()对查询到的数据进行转换以后存入结构体
-	err := m.db.QueryRow(stmt, id).Scan(
+	// 使用ContextWithTimeout定义查询进行的最长时间
+	// 基板context与duration
+	// 这里定义完成就是已经开始计时了
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	// 在Get方法返回前调用cancel回收资源释放内存
+	defer cancel()
+	// 将ctx传入设置DeadLine
+	// 使用pq.Array()对查询到的数据进行转换以后存入结构体 使用空的字节数组存储pq_sleep返回的数据
+	err := m.db.QueryRowContext(ctx, stmt, id).Scan(
 		&movie.ID, &movie.CreatedAt, &movie.Title, &movie.Year, &movie.Runtime, pq.Array(&movie.Genres), &movie.Version)
 	if err != nil {
 		// 判断是不是sql的no row 错误
@@ -94,8 +105,11 @@ func (m *MovieModel) Update(movie *Movie) error {
 			RETURNING version`
 	// 存储要使用的参数
 	args := []interface{}{movie.Title, movie.Year, movie.Runtime, pq.Array(movie.Genres), movie.ID, movie.Version}
+	// 创建ctx实现DeadLine
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel()
 	// 判断当前目标的VERSION字段是否发生了变化
-	err := m.db.QueryRow(stmt, args...).Scan(&movie.Version)
+	err := m.db.QueryRowContext(ctx, stmt, args...).Scan(&movie.Version)
 	if err != nil {
 		// 判断错误类型 如果是NoRows则说明VERSION不一致 发生了冲突
 		switch {
@@ -115,7 +129,9 @@ func (m *MovieModel) Delete(id int64) error {
 		return ErrRecordNotFound
 	}
 	stmt := `DELETE FROM movies WHERE id = $1`
-	result, err := m.db.Exec(stmt, id)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel()
+	result, err := m.db.ExecContext(ctx, stmt, id)
 	if err != nil {
 		return err
 	}
