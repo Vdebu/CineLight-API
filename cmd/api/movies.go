@@ -180,6 +180,12 @@ func (app *application) listMoviesHandler(c *gin.Context) {
 		app.failedValidationResponse(c, v.Errors)
 		return
 	}
+	// 按输入逻辑进行查询
+	movies, err := app.models.Movies.GetAll(input.Title, input.Genres, input.Filters)
+	if err != nil {
+		app.serverErrorResponse(c, err)
+		return
+	}
 	// 将查询到的值按输入逻辑输出
-	app.writeJson(c, http.StatusOK, envelop{"data": input}, nil)
+	app.writeJson(c, http.StatusOK, envelop{"movies": movies}, nil)
 }

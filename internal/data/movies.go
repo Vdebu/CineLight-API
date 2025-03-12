@@ -143,3 +143,46 @@ func (m *MovieModel) Delete(id int64) error {
 	}
 	return nil
 }
+
+// 根据query url的参数返回指定的信息
+func (m *MovieModel) GetAll(title string, genres []string, filters Filters) ([]*Movie, error) {
+	stmt := `
+		SELECT id,created_at,title,year,runtime,genres,version
+		FROM movies
+		ORDER BY id`
+	// 创建DeadLine
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel()
+	// 执行查询请求
+	rows, err := m.db.QueryContext(ctx, stmt)
+	if err != nil {
+		return nil, err
+	}
+	// 读取完毕后回收row的资源
+	defer rows.Close()
+	// 创建切片用于存储查询到的信息
+	movies := []*Movie{}
+	// 从rows中提取数据
+	for rows.Next() {
+		var movie Movie
+		err := rows.Scan(
+			&movie.ID,
+			&movie.CreatedAt,
+			&movie.Title,
+			&movie.Year,
+			&movie.Runtime,
+			pq.Array(&movie.Genres),
+			&movie.Version,
+		)
+		if err != nil {
+			return nil, err
+		}
+		// 提取成功将内容加入slice
+		movies = append(movies, &movie)
+	}
+	// 迭代结束检查是否发生错误
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return movies, nil
+}
