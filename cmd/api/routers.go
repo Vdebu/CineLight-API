@@ -16,6 +16,7 @@ func (app *application) routers() *gin.Engine {
 		// 使用PATCH方法更新信息(一般全部更新用PUT)
 		v1.PATCH("/movies/:id", app.updateMovieHandler)
 		v1.DELETE("/movies/:id", app.deleteMovieHandler)
+		v1.GET("/movies", app.listMoviesHandler)
 	}
 	return router
 }

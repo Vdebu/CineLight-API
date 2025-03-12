@@ -152,3 +152,32 @@ func (app *application) deleteMovieHandler(c *gin.Context) {
 	// 提示删除成功
 	app.writeJson(c, http.StatusOK, envelop{"movie": "movie successfully deleted"}, nil)
 }
+func (app *application) listMoviesHandler(c *gin.Context) {
+	// 保持代码风格一致
+	// 定义input结构体存储可能会有的数据
+	var input struct {
+		Title        string
+		Genres       []string
+		data.Filters // 直接嵌入字段
+	}
+	// 创建新的验证器
+	v := validator.New()
+	// 初始化query string map
+	qs := c.Request.URL.Query()
+	// 尝试提取值 若为空则返回默认值
+	input.Title = app.readString(qs, "title", "")
+	// 注意这里slice要初始化后返回
+	input.Genres = app.readCSV(qs, "genres", []string{})
+	// 尝试获取page范围 默认值分别为1与20
+	input.Filters.Page = app.readInt(qs, "page", 1, v)
+	input.Filters.PageSize = app.readInt(qs, "page_size", 20, v)
+	// 提取排序信息 默认按id排序
+	input.Filters.Sort = app.readString(qs, "sort", "id")
+	// 检查数据的有效性
+	if !v.Valid() {
+		app.failedValidationResponse(c, v.Errors)
+		return
+	}
+	// 将查询到的值按输入逻辑输出
+	app.writeJson(c, http.StatusOK, envelop{"data": input}, nil)
+}

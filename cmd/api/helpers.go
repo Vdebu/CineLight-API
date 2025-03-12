@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"greenlight.vdebu.net/internal/validator"
 	"io"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 )
@@ -37,6 +39,7 @@ func (app *application) writeJson(c *gin.Context, status int, data envelop, head
 	//app.logger.Println("we are here...")
 }
 
+// 读取用户发送的JSON
 func (app *application) readJSON(c *gin.Context, dst interface{}) error {
 	// 通过重新定义gin的请求体限制JSON请求体的大小 防止服务器资源耗尽
 	// 这里限制为1mb
@@ -94,4 +97,42 @@ func (app *application) readJSON(c *gin.Context, dst interface{}) error {
 		return errors.New("body must only contain a single JSON value")
 	}
 	return nil
+}
+
+// 若能在query string找到匹配值则返回匹配值否则返回默认值
+func (app *application) readString(qs url.Values, key string, defaultValue string) string {
+	// 尝试从values map中抽取指定key的value
+	s := qs.Get(key)
+	// 判断值是否存在
+	if s == "" {
+		return defaultValue
+	}
+	// 值不存在返回默认值
+	return s
+}
+
+// 从query string中读取一个字符串并将其解构为slice
+func (app *application) readCSV(qs url.Values, key string, defaultValue []string) []string {
+	// 尝试提取键值
+	csv := qs.Get(key)
+	if csv == "" {
+		return defaultValue
+	}
+	// 分割为[]string进行返回
+	return strings.Split(csv, ",")
+}
+
+// 从query string中读取字符串并将其转换成整数返回 如果key无法转换成整数则记录下错误返回
+func (app *application) readInt(qs url.Values, key string, defaultValue int, v *validator.Validator) int {
+	s := qs.Get(key)
+	if s == "" {
+		return defaultValue
+	}
+	i, err := strconv.Atoi(s)
+	// 转换失败
+	if err != nil {
+		v.AddError(key, "must be a integer value")
+		return defaultValue
+	}
+	return i
 }
