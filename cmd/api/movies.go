@@ -173,8 +173,10 @@ func (app *application) listMoviesHandler(c *gin.Context) {
 	input.Filters.PageSize = app.readInt(qs, "page_size", 20, v)
 	// 提取排序信息 默认按id排序
 	input.Filters.Sort = app.readString(qs, "sort", "id")
+	// 添加排序的允许值
+	input.SortSafeList = []string{"id", "title", "year", "runtime", "-id", "-title", "-year", "-runtime"}
 	// 检查数据的有效性
-	if !v.Valid() {
+	if data.ValidateFilters(v, input.Filters); !v.Valid() {
 		app.failedValidationResponse(c, v.Errors)
 		return
 	}
