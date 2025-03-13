@@ -44,3 +44,13 @@ func (f Filters) sortDirection() string {
 	// 升序
 	return "ASC"
 }
+
+// 获取每页显示的数据数目
+func (f Filters) limit() int {
+	return f.PageSize
+}
+
+// 获取当前要展示的页
+func (f Filters) offset() int {
+	return (f.Page - 1) * f.PageSize
+}

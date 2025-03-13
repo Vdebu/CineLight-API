@@ -147,19 +147,22 @@ func (m *MovieModel) Delete(id int64) error {
 
 // 根据query url的参数返回指定的信息
 func (m *MovieModel) GetAll(title string, genres []string, filters Filters) ([]*Movie, error) {
-	// 使用fmt.Sprintf动态生成查询语句 确保ORDER BY 作用于一个一定存在的key保证输出是有序的
+	// 使用fmt.Sprintf动态生成查询语句(查询关键字是不能用占位符插入的) 确保ORDER BY 作用于一个一定存在的key保证输出是有序的
 	// psql若没有指定排序输出顺序是随机的
 	stmt := fmt.Sprintf(`
 		SELECT id,created_at,title,year,runtime,genres,version
 		FROM movies
 		WHERE (to_tsvector('simple',title) @@ plainto_tsquery('simple',$1) OR $1 = '')
 		AND (genres @> $2 OR $2 = '{}')
-		ORDER BY %s %s,id ASC`, filters.sortColumn(), filters.sortDirection())
+		ORDER BY %s %s,id ASC
+		LIMIT $3 OFFSET $4`, filters.sortColumn(), filters.sortDirection())
 	// 创建DeadLine
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
+	// 将page相关数值使用占位符传入查询语句
+	args := []interface{}{title, pq.Array(genres), filters.limit(), filters.offset()}
 	// 执行查询请求
-	rows, err := m.db.QueryContext(ctx, stmt, title, pq.Array(genres))
+	rows, err := m.db.QueryContext(ctx, stmt, args...)
 	if err != nil {
 		return nil, err
 	}
