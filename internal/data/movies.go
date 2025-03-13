@@ -145,12 +145,12 @@ func (m *MovieModel) Delete(id int64) error {
 	return nil
 }
 
-// 根据query url的参数返回指定的信息
-func (m *MovieModel) GetAll(title string, genres []string, filters Filters) ([]*Movie, error) {
+// 根据query url的参数返回需要展示的数据信息与当前页面的统计信息
+func (m *MovieModel) GetAll(title string, genres []string, filters Filters) ([]*Movie, MetaData, error) {
 	// 使用fmt.Sprintf动态生成查询语句(查询关键字是不能用占位符插入的) 确保ORDER BY 作用于一个一定存在的key保证输出是有序的
 	// psql若没有指定排序输出顺序是随机的
 	stmt := fmt.Sprintf(`
-		SELECT id,created_at,title,year,runtime,genres,version
+		SELECT count(*) OVER(),id,created_at,title,year,runtime,genres,version
 		FROM movies
 		WHERE (to_tsvector('simple',title) @@ plainto_tsquery('simple',$1) OR $1 = '')
 		AND (genres @> $2 OR $2 = '{}')
@@ -164,16 +164,19 @@ func (m *MovieModel) GetAll(title string, genres []string, filters Filters) ([]*
 	// 执行查询请求
 	rows, err := m.db.QueryContext(ctx, stmt, args...)
 	if err != nil {
-		return nil, err
+		return nil, MetaData{}, err
 	}
 	// 读取完毕后回收row的资源
 	defer rows.Close()
 	// 创建切片用于存储查询到的信息
 	movies := []*Movie{}
+	// 初始化总行数
+	totalRows := 0
 	// 从rows中提取数据
 	for rows.Next() {
 		var movie Movie
 		err := rows.Scan(
+			&totalRows, // 读取count返回的总的有效行数
 			&movie.ID,
 			&movie.CreatedAt,
 			&movie.Title,
@@ -183,14 +186,15 @@ func (m *MovieModel) GetAll(title string, genres []string, filters Filters) ([]*
 			&movie.Version,
 		)
 		if err != nil {
-			return nil, err
+			return nil, MetaData{}, err
 		}
 		// 提取成功将内容加入slice
 		movies = append(movies, &movie)
 	}
 	// 迭代结束检查是否发生错误
 	if err := rows.Err(); err != nil {
-		return nil, err
+		return nil, MetaData{}, err
 	}
-	return movies, nil
+	metaData := calculateMetadata(totalRows, filters.Page, filters.PageSize)
+	return movies, metaData, nil
 }

@@ -2,6 +2,7 @@ package data
 
 import (
 	"greenlight.vdebu.net/internal/validator"
+	"math"
 	"strings"
 )
 
@@ -11,6 +12,15 @@ type Filters struct {
 	PageSize     int
 	Sort         string   // 存储输入排序规则
 	SortSafeList []string // 存储允许的排序规则
+}
+
+// 存储当前页面的数据信息
+type MetaData struct {
+	CurrentPage  int `json:"current_page,omitempty"`
+	PageSize     int `json:"page_size,omitempty"`
+	FirstPage    int `json:"first_page,omitempty"`
+	LastPage     int `json:"last_page,omitempty"`
+	TotalRecords int `json:"total_records,omitempty"`
 }
 
 // 检查filters字段的有效性
@@ -53,4 +63,19 @@ func (f Filters) limit() int {
 // 获取当前要展示的页
 func (f Filters) offset() int {
 	return (f.Page - 1) * f.PageSize
+}
+
+// 计算页面的数据信息
+func calculateMetadata(totalRecords, page, pageSize int) MetaData {
+	if totalRecords == 0 {
+		// 如果总记录数为零返回空的结构体
+		return MetaData{}
+	}
+	return MetaData{
+		CurrentPage:  page,
+		PageSize:     pageSize,
+		FirstPage:    1,
+		LastPage:     int(math.Ceil(float64(totalRecords) / float64(pageSize))), // 计算以当前规格要显示多少页 最后的结果向上取整
+		TotalRecords: totalRecords,
+	}
 }

@@ -181,11 +181,11 @@ func (app *application) listMoviesHandler(c *gin.Context) {
 		return
 	}
 	// 按输入逻辑进行查询
-	movies, err := app.models.Movies.GetAll(input.Title, input.Genres, input.Filters)
+	movies, metaData, err := app.models.Movies.GetAll(input.Title, input.Genres, input.Filters)
 	if err != nil {
 		app.serverErrorResponse(c, err)
 		return
 	}
 	// 将查询到的值按输入逻辑输出
-	app.writeJson(c, http.StatusOK, envelop{"movies": movies}, nil)
+	app.writeJson(c, http.StatusOK, envelop{"movies": movies, "metadata": metaData}, nil)
 }
