@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/time/rate"
 )
 
 // 检测Panic
@@ -18,6 +19,20 @@ func (app *application) recoverPanic() gin.HandlerFunc {
 			}
 		}()
 		// 调用下一个中间件
+		context.Next()
+	}
+}
+
+// 使用令牌桶限制访问速率
+func (app *application) rateLimiter() gin.HandlerFunc {
+	// 每秒新增两个令牌 最多持有四个令牌
+	limiter := rate.NewLimiter(2, 4)
+	return func(context *gin.Context) {
+		// 使用Allow会消耗令牌 如果没有令牌会返回False
+		if !limiter.Allow() {
+			app.rateLimitExceededResponse(context)
+			return
+		}
 		context.Next()
 	}
 }

@@ -8,8 +8,8 @@ func (app *application) routers() *gin.Engine {
 	router.HandleMethodNotAllowed = true
 	// 使用路由分组 会自动以/v1作为前缀
 	v1 := router.Group("/v1")
-	// 使用中间件 ->
-	v1.Use(gin.Logger(), app.recoverPanic())
+	// 使用中间件 执行顺序->
+	v1.Use(app.recoverPanic(), app.rateLimiter(), gin.Logger())
 	{
 		// 使用gin的处理器定义逻辑创建路由
 		v1.GET("/healthcheck", app.healthcheckHandler)

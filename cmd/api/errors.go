@@ -66,3 +66,9 @@ func (app *application) editConflictResponse(c *gin.Context) {
 	// 传入HTTP冲突状态码
 	app.errorResponse(c, http.StatusConflict, msg)
 }
+
+// 返回请求繁忙
+func (app *application) rateLimitExceededResponse(c *gin.Context) {
+	msg := "rate limit exceeded"
+	app.errorResponse(c, http.StatusTooManyRequests, msg)
+}
