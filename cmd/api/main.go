@@ -28,6 +28,11 @@ type config struct {
 		maxIdleConns int    // 最大惰性连接数 maxIdleConns <= maxOpenConns
 		maxIdleTime  string // 在连接持续处于惰性一段时间后将其关闭
 	}
+	limiter struct {
+		rps    float64 // request-per-second 每秒填充的令牌数
+		burst  int     // 默认令牌值
+		enable bool    // 是否开启速率限制
+	}
 }
 
 // 注入依赖
@@ -51,7 +56,10 @@ func main() {
 	flag.IntVar(&cfg.db.maxOpenConns, "db-max-open-conns", 25, "PostgreSQL max open connections")
 	flag.IntVar(&cfg.db.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL max idle connections")
 	flag.StringVar(&cfg.db.maxIdleTime, "db-max-idle-time", "15m", "PostgreSQL max connection idle time")
-
+	// 服务器速率限制的配置
+	flag.Float64Var(&cfg.limiter.rps, "limiter-rps", 2, "Rate limiter maximum requests per second")
+	flag.IntVar(&cfg.limiter.burst, "limiter-burst", 4, "Rate limiter maximum burst")
+	flag.BoolVar(&cfg.limiter.enable, "limiter-enabled", true, "Enable rate limiter")
 	// 解析命令行参数
 	flag.Parse()
 	// 初始化服务器内部的日志工具

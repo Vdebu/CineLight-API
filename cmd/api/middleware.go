@@ -55,31 +55,34 @@ func (app *application) rateLimiter() gin.HandlerFunc {
 		}
 	}()
 	return func(context *gin.Context) {
-		// 提取每一个请求的ip
-		ip, _, err := net.SplitHostPort(context.Request.RemoteAddr)
-		if err != nil {
-			app.serverErrorResponse(context, err)
-			return
-		}
-		// 上锁 准备对clients进行操作
-		mu.Lock()
-		// 检查当前ip是否已存在 如果不存在就进行初始化
-		if _, found := clients[ip]; !found {
-			// 初始化 ip -> client
-			clients[ip] = &client{limiter: rate.NewLimiter(2, 4)}
-		}
-		// 记录下当前访问的时间
-		clients[ip].lastSeen = time.Now()
-		// 针对每一个IP使用Allow会消耗令牌 如果没有令牌会返回False
-		if !clients[ip].limiter.Allow() {
-			// 避免死锁
+		if app.config.limiter.enable {
+			// 若速率限制是开启的
+			// 提取每一个请求的ip
+			ip, _, err := net.SplitHostPort(context.Request.RemoteAddr)
+			if err != nil {
+				app.serverErrorResponse(context, err)
+				return
+			}
+			// 上锁 准备对clients进行操作
+			mu.Lock()
+			// 检查当前ip是否已存在 如果不存在就进行初始化
+			if _, found := clients[ip]; !found {
+				// 初始化 ip -> client
+				clients[ip] = &client{limiter: rate.NewLimiter(2, 4)}
+			}
+			// 记录下当前访问的时间
+			clients[ip].lastSeen = time.Now()
+			// 针对每一个IP使用Allow会消耗令牌 如果没有令牌会返回False
+			if !clients[ip].limiter.Allow() {
+				// 避免死锁
+				mu.Unlock()
+				// 返回请求繁忙
+				app.rateLimitExceededResponse(context)
+				return
+			}
+			// 操作完成解锁
 			mu.Unlock()
-			// 返回请求繁忙
-			app.rateLimitExceededResponse(context)
-			return
 		}
-		// 操作完成解锁
-		mu.Unlock()
 		// 调用下一个中间件
 		context.Next()
 	}
