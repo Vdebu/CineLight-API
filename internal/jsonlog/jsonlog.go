@@ -81,7 +81,7 @@ func (l *Logger) print(level Level, message string, properties map[string]string
 		Trace      string            `json:"trace,omitempty"`
 	}{
 		Level:      level.String(),
-		Time:       time.Now().UTC().Format(time.RFC3339), // 将时间格式化为string
+		Time:       time.Now().Local().Format(time.RFC3339), // 将本地时间(原先是UTC)格式化为string
 		Message:    message,
 		Properties: properties,
 	}
