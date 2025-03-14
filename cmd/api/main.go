@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"greenlight.vdebu.net/internal/data"
 	"greenlight.vdebu.net/internal/jsonlog"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -75,14 +76,12 @@ func main() {
 	}
 	// 初始化服务器信息
 	srv := http.Server{
-		// 初始化端口
-		Addr: fmt.Sprintf(":%d", cfg.port),
-		// 初始化路由
-		Handler: app.routers(),
-		// 初始化各种操作的超时时间
-		IdleTimeout:  time.Minute,
+		Addr:         fmt.Sprintf(":%d", cfg.port), // 初始化端口
+		Handler:      app.routers(),                // 初始化路由
+		IdleTimeout:  time.Minute,                  // 初始化各种操作的超时时间
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,
+		ErrorLog:     log.New(logger, "", 0), // 由于实现了io.Writer接口可以直接用自定义logger创建新logger
 	}
 	// 启动服务器
 	logger.PrintInfo("starting the server", map[string]string{
