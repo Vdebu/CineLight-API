@@ -6,7 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"greenlight.vdebu.net/internal/data"
-	"log"
+	"greenlight.vdebu.net/internal/jsonlog"
 	"net/http"
 	"os"
 	"time"
@@ -32,7 +32,7 @@ type config struct {
 // 注入依赖
 type application struct {
 	config config
-	logger *log.Logger
+	logger *jsonlog.Logger
 	models data.Models
 }
 
@@ -54,24 +54,24 @@ func main() {
 	// 解析命令行参数
 	flag.Parse()
 	// 初始化服务器内部的日志工具
-	// 输出时间与日期
-	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
+	logger := jsonlog.New(os.Stdout, jsonlog.LevelInfo)
 	//logger.Println("dsn:", cfg.db.dsn)
 	// 初始化数据库链接
 	db, err := openDB(cfg)
 	if err != nil {
-		logger.Fatal(err)
+		// 使用PrintFatal输出错误信息并结束程序运行
+		logger.PrintFatal(err, nil)
 	}
 	// 程序结束时关闭数据库的连接
 	defer db.Close()
-	logger.Println("db connection established...")
+	logger.PrintInfo("db connection established...", nil)
 	// 初始化模型依赖
 	models := data.NewModels(db)
 	// 初始化依赖
 	app := &application{
-		config: cfg,
-		logger: logger,
-		models: models,
+		config: cfg,    // 载入服务器配置
+		logger: logger, // 初始化默认标准输出，信息为Info的Logger
+		models: models, // 嵌入数据模型
 	}
 	// 初始化服务器信息
 	srv := http.Server{
@@ -85,9 +85,12 @@ func main() {
 		WriteTimeout: 30 * time.Second,
 	}
 	// 启动服务器
-	logger.Printf("starting %s server on %s\n", cfg.env, srv.Addr)
+	logger.PrintInfo("starting the server", map[string]string{
+		"addr": srv.Addr, // 输出端口信息
+		"env":  cfg.env,  // 输出开发环境信息
+	})
 	err = srv.ListenAndServe()
-	logger.Fatal(err)
+	logger.PrintFatal(err, nil)
 }
 
 // 尝试连接数据库 返回数据库连接池sql.DB

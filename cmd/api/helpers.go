@@ -29,7 +29,7 @@ func (app *application) readIDParam(c *gin.Context) (int64, error) {
 
 // 发送json数据到响应体 将data的类型更改为自定义类型用于折叠Json
 func (app *application) writeJson(c *gin.Context, status int, data envelop, header http.Header) {
-	// 使json的输出更加美观
+	// 使json的输出更加美观 会有性能开销 还在开发时使用
 	c.IndentedJSON(status, data)
 	// 向响应体中添加传入的表头
 	for key, val := range header {

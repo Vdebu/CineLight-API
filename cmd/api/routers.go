@@ -3,7 +3,7 @@ package main
 import "github.com/gin-gonic/gin"
 
 func (app *application) routers() *gin.Engine {
-	// 创建复用路由
+	// 创建复用路由 gin.Default默认包含了Logger And Recovery
 	router := gin.Default()
 	router.HandleMethodNotAllowed = true
 	// 使用路由分组 会自动以/v1作为前缀

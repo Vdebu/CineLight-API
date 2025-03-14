@@ -8,7 +8,11 @@ import (
 
 // 生成错误日志
 func (app *application) logError(c *gin.Context, err error) {
-	app.logger.Println(err)
+	// 记录当前的访问方法与访问路径
+	app.logger.PrintError(err, map[string]string{
+		"request_method": c.Request.Method,
+		"request_url":    c.Request.URL.String(),
+	})
 }
 
 // 使用Json向响应体发送错误信息 使用interface{}描述数据可以使Json内容更灵活多变
