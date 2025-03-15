@@ -4,11 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"flag"
-	"fmt"
 	"greenlight.vdebu.net/internal/data"
 	"greenlight.vdebu.net/internal/jsonlog"
-	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -83,21 +80,10 @@ func main() {
 		models: models, // 嵌入数据模型
 	}
 	// 初始化服务器信息
-	srv := http.Server{
-		Addr:         fmt.Sprintf(":%d", cfg.port), // 初始化端口
-		Handler:      app.routers(),                // 初始化路由
-		IdleTimeout:  time.Minute,                  // 初始化各种操作的超时时间
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 30 * time.Second,
-		ErrorLog:     log.New(logger, "", 0), // 由于实现了io.Writer接口可以直接用自定义logger创建新logger
+	err = app.server()
+	if err != nil {
+		logger.PrintFatal(err, nil)
 	}
-	// 启动服务器
-	logger.PrintInfo("starting the server", map[string]string{
-		"addr": srv.Addr, // 输出端口信息
-		"env":  cfg.env,  // 输出开发环境信息
-	})
-	err = srv.ListenAndServe()
-	logger.PrintFatal(err, nil)
 }
 
 // 尝试连接数据库 返回数据库连接池sql.DB
