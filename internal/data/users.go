@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"github.com/lib/pq"
 
 	"golang.org/x/crypto/bcrypt"
 	"greenlight.vdebu.net/internal/validator"
@@ -180,10 +181,15 @@ func (m *UserModel) Update(user *User) error {
 	// 同时更新当前user的version
 	err := m.db.QueryRowContext(ctx, stmt, args...).Scan(&user.Version)
 	if err != nil {
+		// 表示postgresql报的错误
+		var pqerr *pq.Error
 		switch {
-		// 检查错误类型
-		case err.Error() == `pq:duplicate key value violate unique constraint "user_email_key"`:
-			return ErrDuplicateEmail
+		// 检查错误类型是否是pq
+		case errors.As(err, &pqerr):
+			if pqerr.Code == "23505" {
+				// 违反唯一约束
+				return ErrDuplicateEmail
+			}
 		case errors.Is(err, sql.ErrNoRows):
 			return ErrRecordNotFound
 		default:

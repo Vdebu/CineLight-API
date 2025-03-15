@@ -19,6 +19,8 @@ func (app *application) routers() *gin.Engine {
 		v1.PATCH("/movies/:id", app.updateMovieHandler)
 		v1.DELETE("/movies/:id", app.deleteMovieHandler)
 		v1.GET("/movies", app.listMoviesHandler)
+		// 用户相关
+		v1.POST("/users", app.registerUserHandler)
 	}
 	return router
 }
