@@ -53,6 +53,13 @@ func (app *application) registerUserHandler(c *gin.Context) {
 		}
 		return
 	}
+	// 注册成功后向用户的邮箱发送欢迎邮件
+	err = app.mailer.Send(user.Email, "user_welcome.tmpl.html", nil)
+	if err != nil {
+		app.serverErrorResponse(c, err)
+		return
+	}
 	// 展示成功创建的信息
 	app.writeJson(c, http.StatusCreated, envelop{"user": user}, nil)
+
 }

@@ -6,6 +6,7 @@ import (
 	"flag"
 	"greenlight.vdebu.net/internal/data"
 	"greenlight.vdebu.net/internal/jsonlog"
+	"greenlight.vdebu.net/internal/mailer"
 	"os"
 	"time"
 
@@ -30,6 +31,13 @@ type config struct {
 		burst  int     // 默认令牌值
 		enable bool    // 是否开启速率限制
 	}
+	smtp struct {
+		host     string
+		port     int
+		username string // 用于发送邮箱的账号
+		password string // 用于发送邮箱的账号
+		sender   string // 发件人
+	}
 }
 
 // 注入依赖
@@ -37,6 +45,7 @@ type application struct {
 	config config
 	logger *jsonlog.Logger
 	models data.Models
+	mailer mailer.Mailer
 }
 
 func main() {
@@ -57,6 +66,12 @@ func main() {
 	flag.Float64Var(&cfg.limiter.rps, "limiter-rps", 2, "Rate limiter maximum requests per second")
 	flag.IntVar(&cfg.limiter.burst, "limiter-burst", 4, "Rate limiter maximum burst")
 	flag.BoolVar(&cfg.limiter.enable, "limiter-enabled", true, "Enable rate limiter")
+	// 邮箱服务器的配置
+	flag.StringVar(&cfg.smtp.host, "smtp-host", "sandbox.smtp.mailtrap.io", "SMTP host")
+	flag.IntVar(&cfg.smtp.port, "smtp-port", 25, "SMTP port")
+	flag.StringVar(&cfg.smtp.username, "smtp-username", "6d1f560db0b87a", "SMTP username")
+	flag.StringVar(&cfg.smtp.password, "smtp-password", "ca65fbfdf5d908", "SMTP password")
+	flag.StringVar(&cfg.smtp.sender, "smtp-sender", "Greenlight <no-reply@Greenlight.vdebu.net>", "SMTP sender")
 	// 解析命令行参数
 	flag.Parse()
 	// 初始化服务器内部的日志工具
@@ -78,6 +93,13 @@ func main() {
 		config: cfg,    // 载入服务器配置
 		logger: logger, // 初始化默认标准输出，信息为Info的Logger
 		models: models, // 嵌入数据模型
+		mailer: mailer.New( // 初始化邮件系统
+			cfg.smtp.host,
+			cfg.smtp.port,
+			cfg.smtp.username,
+			cfg.smtp.password,
+			cfg.smtp.sender,
+		),
 	}
 	// 初始化服务器信息
 	err = app.server()
