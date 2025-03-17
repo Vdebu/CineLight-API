@@ -84,7 +84,8 @@ func (m TokenModel) Insert(token *Token) error {
 	// 回收资源
 	defer cancel()
 	// 执行插入操作
-	_, err := m.db.ExecContext(ctx, stmt, args)
+	// 注意 这里必须用...转换为可变参数否则sql在插入的时候会报错
+	_, err := m.db.ExecContext(ctx, stmt, args...)
 	// 后续没有操作了 直接返回
 	return err
 }
