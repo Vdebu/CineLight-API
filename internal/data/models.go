@@ -15,6 +15,7 @@ var (
 type Models struct {
 	Movies MovieModel
 	User   UserModel
+	Token  TokenModel
 }
 
 // 创建新的模型实例
@@ -23,5 +24,6 @@ func NewModels(db *sql.DB) Models {
 		// 初始化数据模型的数据库连接池
 		Movies: MovieModel{db: db},
 		User:   UserModel{db: db},
+		Token:  TokenModel{db: db},
 	}
 }
