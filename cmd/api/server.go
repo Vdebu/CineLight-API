@@ -42,7 +42,11 @@ func (app *application) server() error {
 		// 如果优雅退出成功则返回nil或者因为某些错误与超时(5s) 将返回的错误存入通道(发生阻塞直到被接收)
 		shutdownError <- srv.Shutdown(ctx)
 	}()
-	// 启动服务器
+	app.logger.PrintInfo("starting the server", map[string]string{
+		"addr": srv.Addr,       // 输出端口信息
+		"env":  app.config.env, // 输出开发环境信息
+	})
+	// 启动服务器 启动服务器后会直接进入阻塞 直接收到让服务器停止的信号
 	err := srv.ListenAndServe()
 	// 在进入优雅退出后ListenAndServe会接收到http.ErrServerClosed错误
 	// 检查错误类型决定是否返回
@@ -50,10 +54,6 @@ func (app *application) server() error {
 		// 若不是优雅退出造成的错误则返回处理
 		return err
 	}
-	app.logger.PrintInfo("starting the server", map[string]string{
-		"addr": srv.Addr,       // 输出端口信息
-		"env":  app.config.env, // 输出开发环境信息
-	})
 	// 监听优雅退出是否开始
 	err = <-shutdownError
 	if err != nil {

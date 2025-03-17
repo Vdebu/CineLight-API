@@ -136,3 +136,21 @@ func (app *application) readInt(qs url.Values, key string, defaultValue int, v *
 	}
 	return i
 }
+
+// 用于公式化启动后台goroutine
+func (app *application) background(fn func()) {
+	// 启动函数goroutine
+	go func() {
+		// 捕获后台goroutine的panic
+		defer func() {
+			// 恢复panic
+			if err := recover(); err != nil {
+				// 使用app.logger.PrintError输出错误信息而不是errResponse重复写入响应体
+				app.logger.PrintError(fmt.Errorf("%s", err), nil)
+			}
+		}()
+		// 执行函数的逻辑
+		// 在go中func可以被赋值给变量也可以作为参数直接传递
+		fn()
+	}()
+}

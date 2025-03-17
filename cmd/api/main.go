@@ -8,6 +8,7 @@ import (
 	"greenlight.vdebu.net/internal/jsonlog"
 	"greenlight.vdebu.net/internal/mailer"
 	"os"
+	"sync"
 	"time"
 
 	_ "github.com/lib/pq" //隐式导入sql驱动
@@ -42,10 +43,11 @@ type config struct {
 
 // 注入依赖
 type application struct {
-	config config
-	logger *jsonlog.Logger
-	models data.Models
-	mailer mailer.Mailer
+	config config          // 服务器默认配置
+	logger *jsonlog.Logger // JSON形式的logger
+	models data.Models     // 数据库中的数据模型
+	mailer mailer.Mailer   // 邮箱服务
+	wg     sync.WaitGroup  // 同步goroutine工作进度 默认0值后续无需进行初始化
 }
 
 func main() {

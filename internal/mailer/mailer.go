@@ -67,10 +67,16 @@ func (m *Mailer) Send(recipient, templateFile string, data interface{}) error {
 	msg.SetBody("text/plain", plainBody.String())
 	// 添加可选的文本选项 AddAlternative只能在SetBody之后进行调用
 	msg.AddAlternative("text/html", htmlBody.String())
-	// 发送邮件
-	err = m.dialer.DialAndSend(msg)
-	if err != nil {
-		return err
+	// 尝试发送邮件 三次重试机会
+	for i := 1; i <= 3; i++ {
+		err = m.dialer.DialAndSend(msg)
+		if nil == err {
+			// 发送成功返回nil
+			return nil
+		}
+		// 等待0.5s继续重试
+		time.Sleep(500 * time.Millisecond)
 	}
-	return nil
+	// 经过三次重试还是发生了错误 将错误进行返回
+	return err
 }

@@ -53,13 +53,16 @@ func (app *application) registerUserHandler(c *gin.Context) {
 		}
 		return
 	}
-	// 注册成功后向用户的邮箱发送欢迎邮件
-	err = app.mailer.Send(user.Email, "user_welcome.tmpl.html", nil)
-	if err != nil {
-		app.serverErrorResponse(c, err)
-		return
-	}
+	app.background(func() {
+		// 使用goroutine完成邮件的发送操作节省完成请求所需要的时间
+		// 注册成功后向用户的邮箱发送欢迎邮件
+		err = app.mailer.Send(user.Email, "user_welcome.tmpl.html", user)
+		// 这里不能使用app.serverErrorResponse 因为在这之前服务器可能已经正确处理请求写入响应体
+		// 使用app.logger.PrintError输出错误信息
+		if err != nil {
+			app.logger.PrintError(err, nil)
+		}
+	})
 	// 展示成功创建的信息
 	app.writeJson(c, http.StatusCreated, envelop{"user": user}, nil)
-
 }
