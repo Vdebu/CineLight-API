@@ -14,7 +14,7 @@ import (
 // 初始化并启动服务器的模块
 func (app *application) server() error {
 	srv := http.Server{
-		Addr:         fmt.Sprintf(":%d", app.config.port), // 初始化端口
+		Addr:         fmt.Sprintf(":%d", app.config.port), // 使用字符串初始化端口(:%d)
 		Handler:      app.routers(),                       // 初始化路由
 		IdleTimeout:  time.Minute,                         // 初始化各种操作的超时时间
 		ReadTimeout:  10 * time.Second,
@@ -39,8 +39,20 @@ func (app *application) server() error {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 		//确保ctx资源回收
 		defer cancel()
-		// 如果优雅退出成功则返回nil或者因为某些错误与超时(5s) 将返回的错误存入通道(发生阻塞直到被接收)
-		shutdownError <- srv.Shutdown(ctx)
+		// 尝试关闭判断是否发生错误
+		err := srv.Shutdown(ctx)
+		if err != nil {
+			// 若发生错误直接将其存入通道并返回
+			shutdownError <- err
+		}
+		// 服务器关闭成功等待后台进程全部结束完毕
+		app.logger.PrintInfo("completing background tasks", map[string]string{
+			"addr": srv.Addr,
+		})
+		// 使用WaitGroup等待进行完成
+		app.wg.Wait()
+		// 将nil存入ShutdownErr
+		shutdownError <- nil
 	}()
 	app.logger.PrintInfo("starting the server", map[string]string{
 		"addr": srv.Addr,       // 输出端口信息

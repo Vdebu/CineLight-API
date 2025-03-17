@@ -139,8 +139,13 @@ func (app *application) readInt(qs url.Values, key string, defaultValue int, v *
 
 // 用于公式化启动后台goroutine
 func (app *application) background(fn func()) {
+	// 使用WaitGroup同步所有的goroutine
+	// 当前需要检测的活跃协程 +1
+	app.wg.Add(1)
 	// 启动函数goroutine
 	go func() {
+		// 完成任务后进行 -1
+		defer app.wg.Done()
 		// 捕获后台goroutine的panic
 		defer func() {
 			// 恢复panic
