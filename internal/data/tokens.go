@@ -90,10 +90,10 @@ func (m TokenModel) Insert(token *Token) error {
 	return err
 }
 
-// 针对某个用户删除其所有的Token
+// 针对某个用户删除其作用域下的所有Token
 func (m TokenModel) DeleteAllForUser(scope string, userID int64) error {
 	stmt := `
-			DELETE FROM users
+			DELETE FROM tokens
 			WHERE scope = $1 AND user_id = $2`
 	// 设置五秒操作超时
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

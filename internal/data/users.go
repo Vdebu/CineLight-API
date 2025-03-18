@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
 	"errors"
 	"github.com/lib/pq"
@@ -184,17 +185,64 @@ func (m *UserModel) Update(user *User) error {
 		// 表示postgresql报的错误
 		var pqerr *pq.Error
 		switch {
-		// 检查错误类型是否是pq
+		// 检查错误类型是否是由于唯一约束造成的
 		case errors.As(err, &pqerr):
 			if pqerr.Code == "23505" {
 				// 违反唯一约束
 				return ErrDuplicateEmail
 			}
 		case errors.Is(err, sql.ErrNoRows):
-			return ErrRecordNotFound
+			// 永远都是现提取用户所有的信息再用于更新数据库中的信息
+			// 如果后续update没有查询到记录说明发生了EditConflict
+			return ErrEditConflict
 		default:
 			return err
 		}
 	}
 	return nil
+}
+
+// 使用传入的Token从数据库中查询用户
+func (m *UserModel) GetForToken(tokenScope, tokenPlaintext string) (*User, error) {
+	// 先将传入的Plaintext转换成哈希值
+	tokenHash := sha256.Sum256([]byte(tokenPlaintext))
+	// 查找条件匹配的用户数据
+	stmt := `
+			SELECT users.id,users.created_at,users.name,users.email,users.password_hash,users.activated,users.version
+			FROM users
+			INNER JOIN tokens
+			ON users.id = tokens.user_id
+			WHERE tokens.hash = $1
+			AND tokens.scope = $2
+			AND tokens.expiry > $3`
+	// 将字符串类型转换成slice类型作为参数传入
+	args := []interface{}{tokenHash[:], tokenScope, time.Now()}
+	// 新建user存储查询到的数据
+	var user User
+	// 创建五秒操作超时
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	// 回收资源
+	defer cancel()
+	// 执行查询语句
+	err := m.db.QueryRowContext(ctx, stmt, args...).Scan(
+		&user.ID,
+		&user.CreatedAt,
+		&user.Name,
+		&user.Email,
+		&user.Password.hash,
+		&user.Activated,
+		&user.Version,
+	)
+	if err != nil {
+		// 检查错误类型
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			// 返回记录未找到
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
+	}
+	// 查询成功
+	return &user, nil
 }

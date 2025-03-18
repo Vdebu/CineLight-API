@@ -79,3 +79,62 @@ func (app *application) registerUserHandler(c *gin.Context) {
 	// 展示成功创建的信息
 	app.writeJson(c, http.StatusCreated, envelop{"user": user}, nil)
 }
+
+func (app *application) activateUserHandler(c *gin.Context) {
+	// 存储用户输入的JSON
+	var input struct {
+		TokenPlaintext string `json:"token"`
+	}
+	// 尝试进行读取
+	err := app.readJSON(c, &input)
+	if err != nil {
+		// 输入有误 badRequest
+		app.badRequestResponse(c, err)
+		return
+	}
+	// 验证输入Token的基本有效性
+	v := validator2.New()
+	if data.ValidateTokenPlaintext(v, input.TokenPlaintext); !v.Valid() {
+		// 报告具体错误信息
+		app.failedValidationResponse(c, v.Errors)
+		return
+	}
+	// 从数据库中检查当前的Token是否有效
+	user, err := app.models.User.GetForToken(data.ScopeActivation, input.TokenPlaintext)
+	if err != nil {
+		// 检查错误类型
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			// 没有找到相关的记录
+			v.AddError("token", "invalid or expiry token")
+			app.failedValidationResponse(c, v.Errors)
+		default:
+			// 服务器内部的错误
+			app.serverErrorResponse(c, err)
+		}
+		return
+	}
+	// 找到了相关的记录将用户的状态设置为已激活
+	user.Activated = true
+	// 更新数据库中的用户信息
+	err = app.models.User.Update(user)
+	if err != nil {
+		// 检查错误是否是由发生编辑冲突造成的
+		switch {
+		case errors.Is(err, data.ErrEditConflict):
+			// 返回编辑冲突错误
+			app.editConflictResponse(c)
+		default:
+			app.serverErrorResponse(c, err)
+		}
+		return
+	}
+	// 根据当前用户的ID删除使用的Token
+	err = app.models.Token.DeleteAllForUser(data.ScopeActivation, user.ID)
+	if err != nil {
+		app.serverErrorResponse(c, err)
+		return
+	}
+	// 输出新的用户信息
+	app.writeJson(c, http.StatusOK, envelop{"user": user}, nil)
+}

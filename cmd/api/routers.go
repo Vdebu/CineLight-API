@@ -21,6 +21,7 @@ func (app *application) routers() *gin.Engine {
 		v1.GET("/movies", app.listMoviesHandler)
 		// 用户相关
 		v1.POST("/users", app.registerUserHandler)
+		v1.PUT("/users/activated", app.activateUserHandler)
 	}
 	return router
 }
