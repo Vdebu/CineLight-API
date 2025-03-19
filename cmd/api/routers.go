@@ -8,8 +8,8 @@ func (app *application) routers() *gin.Engine {
 	router.HandleMethodNotAllowed = true
 	// 使用路由分组 会自动以/v1作为前缀
 	v1 := router.Group("/v1")
-	// 使用中间件 执行顺序->
-	v1.Use(app.recoverPanic(), app.rateLimiter(), gin.Logger())
+	// 使用中间件 执行顺序-> 确保日志记录在身份验证之前正确捕获身份认证错误的响应体信息
+	v1.Use(app.recoverPanic(), app.rateLimiter(), gin.Logger(), app.authenticate())
 	{
 		// 使用gin的处理器定义逻辑创建路由
 		v1.GET("/healthcheck", app.healthcheckHandler)
@@ -22,6 +22,8 @@ func (app *application) routers() *gin.Engine {
 		// 用户相关
 		v1.POST("/users", app.registerUserHandler)
 		v1.PUT("/users/activated", app.activateUserHandler)
+		// 激活账号
+		v1.POST("/tokens/authentication", app.createAuthenticationTokenHandler)
 	}
 	return router
 }

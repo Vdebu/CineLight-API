@@ -12,16 +12,17 @@ import (
 
 // 定义tokens可以作用的范围
 var (
-	ScopeActivation = "activation"
+	ScopeActivation     = "activation"
+	ScopeAuthentication = "authentication"
 )
 
-// 定义结构体用于存储Token的相关信息
+// 定义结构体用于存储Token的相关信息(增加输出token的tag -> 验证用户信息的有效性后返回API秘钥)
 type Token struct {
-	Plaintext string
-	Hash      []byte
-	UserID    int64
-	Expiry    time.Time
-	Scope     string
+	Plaintext string    `json:"token"`
+	Hash      []byte    `json:"-"`
+	UserID    int64     `json:"-"`
+	Expiry    time.Time `json:"expiry"`
+	Scope     string    `json:"-"`
 }
 
 // Token数据模型解耦数据库相关的操作

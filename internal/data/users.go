@@ -16,6 +16,9 @@ var (
 	ErrDuplicateEmail = errors.New("duplicate email")
 )
 
+// 创建一个空的用户用于标记当前用户的权限状态
+var AnonymousUser = &User{}
+
 // 与数据库中表结构一致的结构体 对密码与当前的版本号信息进行了隐藏
 type User struct {
 	ID        int64     `json:"id"`
@@ -25,6 +28,11 @@ type User struct {
 	Password  password  `json:"-"`
 	Activated bool      `json:"activated"`
 	Version   int       `json:"-"`
+}
+
+// 检查当前用户是否是匿名用户
+func (u *User) IsAnonymous() bool {
+	return u == AnonymousUser
 }
 
 // 存储密码信息哈希与未哈希的版本

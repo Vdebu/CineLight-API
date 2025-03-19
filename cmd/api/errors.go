@@ -21,6 +21,8 @@ func (app *application) errorResponse(c *gin.Context, status int, message interf
 	env := envelop{"error": message}
 	// 向响应体写入数据
 	app.writeJson(c, status, env, nil)
+	// 任何需要终止请求链的场景必须调用Abort方法终止后续处理流程
+	c.Abort()
 }
 
 // 记录服务器在运行时发生的错误(sql查询等非人为造成的错误)
@@ -71,4 +73,18 @@ func (app *application) editConflictResponse(c *gin.Context) {
 func (app *application) rateLimitExceededResponse(c *gin.Context) {
 	msg := "rate limit exceeded"
 	app.errorResponse(c, http.StatusTooManyRequests, msg)
+}
+
+// 返回用户邮箱或密码无效
+func (app *application) invalidCredentialResponse(c *gin.Context) {
+	msg := "invalid authentication credentials"
+	app.errorResponse(c, http.StatusUnauthorized, msg)
+}
+
+// 返回表头存储的秘钥无效
+func (app *application) invalidAuthenticationTokenResponse(c *gin.Context) {
+	// 告诉客户端应该使用未加密的Token进行认证
+	c.Header("WWW-Authenticate", "Bearer")
+	msg := "invalid or missing authentication key"
+	app.errorResponse(c, http.StatusUnauthorized, msg)
 }

@@ -1,10 +1,14 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/time/rate"
+	"greenlight.vdebu.net/internal/data"
+	validator2 "greenlight.vdebu.net/internal/validator"
 	"net"
+	"strings"
 	"sync"
 	"time"
 )
@@ -83,6 +87,58 @@ func (app *application) rateLimiter() gin.HandlerFunc {
 			// 操作完成解锁
 			mu.Unlock()
 		}
+		// 调用下一个中间件
+		context.Next()
+	}
+}
+
+// 通过从r.context中提取相关内容判断用户时候有认证权限
+func (app *application) authenticate() gin.HandlerFunc {
+	return func(context *gin.Context) {
+		// 告诉浏览器根据Authorization的值进行缓存 -> Vary: Authorization
+		context.Header("Vary", "Authorization")
+		// 尝试从表头提取Authorization字段的信息
+		authorizationHeader := context.GetHeader("Authorization")
+		// 如果是空的则将当前用户设置为匿名用户
+		if authorizationHeader == "" {
+			app.contextSetUser(context.Request, data.AnonymousUser)
+			// 直接调用下一个中间件不执行后续的代码
+			context.Next()
+			// 必须直接return!!!
+			// 简单的调用中间件链并不会终止当前中间件代码的后续运行
+			return
+		}
+		// 存储在表头中的结构应该是:Authorization: Bearer <Token>
+		// 提取成功后尝试进行切分并检查是否如预期
+		headerParts := strings.Split(authorizationHeader, " ")
+		if len(headerParts) != 2 || headerParts[0] != "Bearer" {
+			app.invalidAuthenticationTokenResponse(context)
+			return
+		}
+		// 提取Token进行有效性检测
+		token := headerParts[1]
+		v := validator2.New()
+		// 若有效性验证失败返回无效的认证秘钥而不是通常使用的无效的验证
+		if data.ValidateTokenPlaintext(v, token); !v.Valid() {
+			app.invalidAuthenticationTokenResponse(context)
+			return
+		}
+		// 尝试提取当前秘钥的相关用户
+		user, err := app.models.User.GetForToken(data.ScopeAuthentication, token)
+		if err != nil {
+			// 判断是否是查无此人
+			switch {
+			case errors.Is(err, data.ErrRecordNotFound):
+				// 找不到相关的用户说明认证信息是无效的
+				app.invalidAuthenticationTokenResponse(context)
+			default:
+				// 若为其他错误则是服务器内部发生的
+				app.serverErrorResponse(context, err)
+			}
+			return
+		}
+		// 验证成功更新当前请求的context信息
+		context.Request = app.contextSetUser(context.Request, user)
 		// 调用下一个中间件
 		context.Next()
 	}
