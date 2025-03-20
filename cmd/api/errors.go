@@ -88,3 +88,15 @@ func (app *application) invalidAuthenticationTokenResponse(c *gin.Context) {
 	msg := "invalid or missing authentication key"
 	app.errorResponse(c, http.StatusUnauthorized, msg)
 }
+
+// 返回认证(登录账号)无效
+func (app *application) authenticationRequireResponse(c *gin.Context) {
+	msg := "you must be authenticated to access this resource"
+	app.errorResponse(c, http.StatusUnauthorized, msg)
+}
+
+// 返回账号需要激活
+func (app *application) inactivatedAccountResponse(c *gin.Context) {
+	msg := "your user account must be activated to access this resource"
+	app.errorResponse(c, http.StatusForbidden, msg)
+}

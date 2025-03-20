@@ -95,13 +95,14 @@ func (app *application) rateLimiter() gin.HandlerFunc {
 // 通过从r.context中提取相关内容判断用户时候有认证权限
 func (app *application) authenticate() gin.HandlerFunc {
 	return func(context *gin.Context) {
+		//app.logger.PrintInfo("authenticate middleware called", nil)
 		// 告诉浏览器根据Authorization的值进行缓存 -> Vary: Authorization
 		context.Header("Vary", "Authorization")
 		// 尝试从表头提取Authorization字段的信息
 		authorizationHeader := context.GetHeader("Authorization")
 		// 如果是空的则将当前用户设置为匿名用户
 		if authorizationHeader == "" {
-			app.contextSetUser(context.Request, data.AnonymousUser)
+			app.contextSetUser(context, data.AnonymousUser)
 			// 直接调用下一个中间件不执行后续的代码
 			context.Next()
 			// 必须直接return!!!
@@ -138,7 +139,34 @@ func (app *application) authenticate() gin.HandlerFunc {
 			return
 		}
 		// 验证成功更新当前请求的context信息
-		context.Request = app.contextSetUser(context.Request, user)
+		app.contextSetUser(context, user)
+		// 调用下一个中间件
+		context.Next()
+	}
+}
+
+// 检查当前是否是匿名用户(未认证)
+func (app *application) requireAuthenticatedUser() gin.HandlerFunc {
+	return func(context *gin.Context) {
+		user := app.contextGetUser(context)
+		if user.IsAnonymous() {
+			app.authenticationRequireResponse(context)
+			return
+		}
+		// 调用下一个中间件
+		context.Next()
+	}
+}
+
+// 检查用户是否已认证并且账号已激活(应用在权限敏感的网页)
+func (app *application) requireActivatedUser() gin.HandlerFunc {
+	return func(context *gin.Context) {
+		user := app.contextGetUser(context)
+		// 不是匿名用户判断当前账号是否激活
+		if !user.Activated {
+			app.inactivatedAccountResponse(context)
+			return
+		}
 		// 调用下一个中间件
 		context.Next()
 	}
