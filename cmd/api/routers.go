@@ -23,12 +23,17 @@ func (app *application) routers() *gin.Engine {
 		{
 			// 使用gin的处理器定义逻辑创建路由
 			private.GET("/healthcheck", app.healthcheckHandler)
-			private.POST("/movies", app.createMovieHandler)
-			private.GET("/movies/:id", app.showMovieHandler)
-			// 使用PATCH方法更新信息(一般全部更新用PUT)
-			private.PATCH("/movies/:id", app.updateMovieHandler)
-			private.DELETE("/movies/:id", app.deleteMovieHandler)
-			private.GET("/movies", app.listMoviesHandler)
+			// 創建新的路由組 添加檢測用戶權限的中間件(讀寫)
+			movies := private.Group("")
+			{
+				// 行中的中間件執行順序同樣遵從 --->
+				movies.POST("/movies", app.requirePermission("movie:write"), app.createMovieHandler)
+				movies.GET("/movies/:id", app.requirePermission("movie:read"), app.showMovieHandler)
+				// 使用PATCH方法更新信息(一般全部更新用PUT)
+				movies.PATCH("/movies/:id", app.requirePermission("movie:write"), app.updateMovieHandler)
+				movies.DELETE("/movies/:id", app.requirePermission("movie:write"), app.deleteMovieHandler)
+				movies.GET("/movies", app.requirePermission("movie:read"), app.listMoviesHandler)
+			}
 		}
 	}
 	return router

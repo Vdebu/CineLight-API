@@ -171,3 +171,26 @@ func (app *application) requireActivatedUser() gin.HandlerFunc {
 		context.Next()
 	}
 }
+
+// 接收權限的代碼映射數據庫中的權限類型
+func (app *application) requirePermission(code string) gin.HandlerFunc {
+	return func(context *gin.Context) {
+		// 先從ctx中提取出當前用戶的信息
+		user := app.contextGetUser(context)
+		// 從數據庫中查詢當前用戶擁有的權限
+		permissions, err := app.models.Permissions.GetAllForUser(user.ID)
+		if err != nil {
+			app.serverErrorResponse(context, err)
+			return
+		}
+		// 檢查提供的權限代碼是否在查詢到的列表中
+		if !permissions.Include(code) {
+			// 寫入相應響應體
+			app.notPermittedResponse(context)
+			return
+		}
+
+		// 有對應的權限則調用下一個中間件
+		context.Next()
+	}
+}
