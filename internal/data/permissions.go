@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"database/sql"
+	"github.com/lib/pq"
 	"log"
 	"time"
 )
@@ -66,4 +67,17 @@ func (m PermissionModel) GetAllForUser(userID int64) (Permissions, error) {
 	}
 	// 没发生错误则返回存储结果
 	return permissions, nil
+}
+
+// 為指定的user添加對應的權限(可以是一個權限列表可變的參數)
+func (m PermissionModel) AddForUser(userID int64, codes ...string) error {
+	stmt := `
+			INSERT INTO users_permissions
+			SELECT $1,permissions.id FROM permissions WHERE permissions.code = ANY($2)`
+	// 五秒操作超時
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	// 執行權限插入操作
+	_, err := m.db.ExecContext(ctx, stmt, userID, pq.Array(codes))
+	return err
 }

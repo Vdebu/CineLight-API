@@ -54,6 +54,12 @@ func (app *application) registerUserHandler(c *gin.Context) {
 		}
 		return
 	}
+	// 為新創建的賬號設置讀權限
+	err = app.models.Permissions.AddForUser(user.ID, "movie:read")
+	if err != nil {
+		app.serverErrorResponse(c, err)
+		return
+	}
 	// 生成用于账号激活的Token
 	// 指定当前数据库生成的userID时效为三天范围仅限激活
 	token, err := app.models.Token.New(user.ID, 3*24*time.Hour, data.ScopeActivation)
