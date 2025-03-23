@@ -97,7 +97,7 @@ func (app *application) authenticate() gin.HandlerFunc {
 	return func(context *gin.Context) {
 		//app.logger.PrintInfo("authenticate middleware called", nil)
 		// 告诉浏览器根据Authorization的值进行缓存 -> Vary: Authorization
-		context.Header("Vary", "Authorization")
+		context.Writer.Header().Add("Vary", "Authorization")
 		// 尝试从表头提取Authorization字段的信息
 		authorizationHeader := context.GetHeader("Authorization")
 		// 如果是空的则将当前用户设置为匿名用户
@@ -189,8 +189,30 @@ func (app *application) requirePermission(code string) gin.HandlerFunc {
 			app.notPermittedResponse(context)
 			return
 		}
-
 		// 有對應的權限則調用下一個中間件
+		context.Next()
+	}
+}
+
+// 設置允許跨源請求的請求頭
+func (app *application) enableCORS() gin.HandlerFunc {
+	return func(context *gin.Context) {
+		// 確保服務器不會將不同用戶的私有相應緩存並共享
+		// 注意這裡使用Add方法對表頭進行操作防止先前參數被覆蓋
+		context.Writer.Header().Add("Vary", "Origin")
+		// 從響應頭提取訪問源
+		origin := context.GetHeader("Origin")
+		// 如果origin不為空並且設置的信任的請求源再設置相應的許可
+		if origin != "" && len(app.config.cors.trustedOrigins) != 0 {
+			// 判斷當前請求源是否處於信任列表裡
+			for i := range app.config.cors.trustedOrigins {
+				if origin == app.config.cors.trustedOrigins[i] {
+					// 處於列表中澤設置許可
+					context.Header("Access-Control-Allow-Origin", origin)
+				}
+			}
+		}
+		// 調用下一個中間件
 		context.Next()
 	}
 }

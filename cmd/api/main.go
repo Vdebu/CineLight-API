@@ -8,6 +8,7 @@ import (
 	"greenlight.vdebu.net/internal/jsonlog"
 	"greenlight.vdebu.net/internal/mailer"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -38,6 +39,9 @@ type config struct {
 		username string // 用于发送邮箱的账号
 		password string // 用于发送邮箱的账号
 		sender   string // 发件人
+	}
+	cors struct {
+		trustedOrigins []string // 受信的跨院網站
 	}
 }
 
@@ -74,6 +78,12 @@ func main() {
 	flag.StringVar(&cfg.smtp.username, "smtp-username", "6d1f560db0b87a", "SMTP username")
 	flag.StringVar(&cfg.smtp.password, "smtp-password", "ca65fbfdf5d908", "SMTP password")
 	flag.StringVar(&cfg.smtp.sender, "smtp-sender", "Greenlight <no-reply@Greenlight.vdebu.net>", "SMTP sender")
+	// 受信的跨源請求
+	flag.Func("cors-trusted-origins", "Trusted CORS origins (space separated)", func(s string) error {
+		// 將輸入的字符串
+		cfg.cors.trustedOrigins = strings.Fields(s)
+		return nil
+	})
 	// 解析命令行参数
 	flag.Parse()
 	// 初始化服务器内部的日志工具

@@ -9,8 +9,9 @@ func (app *application) routers() *gin.Engine {
 	// 使用路由分组 会自动以/v1作为前缀
 	v1 := router.Group("/v1")
 	// 使用中间件 执行顺序-> 确保日志记录在身份验证之前正确捕获身份认证错误的响应体信息
-	v1.Use(app.recoverPanic(), app.rateLimiter(), gin.Logger(), app.authenticate())
+	v1.Use(app.recoverPanic(), app.enableCORS(), app.rateLimiter(), gin.Logger(), app.authenticate())
 	{
+		v1.GET("/healthcheck", app.healthcheckHandler)
 		// 用户相关
 		v1.POST("/users", app.registerUserHandler)
 		v1.PUT("/users/activated", app.activateUserHandler)
@@ -21,8 +22,6 @@ func (app *application) routers() *gin.Engine {
 		// 先判断是否认证(登录)再判断是否激活
 		private.Use(app.requireAuthenticatedUser(), app.requireActivatedUser())
 		{
-			// 使用gin的处理器定义逻辑创建路由
-			private.GET("/healthcheck", app.healthcheckHandler)
 			// 創建新的路由組 添加檢測用戶權限的中間件(讀寫)
 			movies := private.Group("")
 			{
