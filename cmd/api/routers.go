@@ -1,6 +1,9 @@
 package main
 
-import "github.com/gin-gonic/gin"
+import (
+	"expvar"
+	"github.com/gin-gonic/gin"
+)
 
 func (app *application) routers() *gin.Engine {
 	// 创建复用路由 gin.Default默认包含了Logger And Recovery
@@ -11,7 +14,8 @@ func (app *application) routers() *gin.Engine {
 	// 使用中间件 执行顺序-> 确保日志记录在身份验证之前正确捕获身份认证错误的响应体信息
 	v1.Use(app.recoverPanic(), app.enableCORS(), app.rateLimiter(), gin.Logger(), app.authenticate())
 	{
-
+		// 添加监控内部变量的节点
+		v1.GET("/debug/vars", gin.WrapH(expvar.Handler()))
 		v1.GET("/healthcheck", app.healthcheckHandler)
 		// 用户相关
 		v1.POST("/users", app.registerUserHandler)
