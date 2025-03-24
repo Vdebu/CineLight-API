@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"expvar"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/time/rate"
@@ -228,5 +229,31 @@ func (app *application) enableCORS() gin.HandlerFunc {
 		}
 		// 調用下一個中間件
 		context.Next()
+	}
+}
+
+// 记录收到的请求数与发送的请求数及完成请求所耗时间
+func (app *application) metrics() gin.HandlerFunc {
+	// 初始化在监控节点中要展示的信息
+	totalRequestReceived := expvar.NewInt("total_requests_received")
+	totalRequestSent := expvar.NewInt("total_response_sent")
+	totalProcessingTimeMicroseconds := expvar.NewInt("total_processing_time_us")
+
+	return func(context *gin.Context) {
+		// 记录开始时间
+		start := time.Now()
+		// 收到的请求数自增
+		totalRequestReceived.Add(1)
+		// 调用下一个中间件
+		// 将控制权传递给下一个中间件或者最终的路由处理器
+		// context.Next() 是阻塞调用，会顺序执行链中后续的所有中间件和最终的处理器。当这些处理器全部执行完毕后，控制权才会返回到当前中间件中继续执行下面的代码。
+		//也就是说，下半部分代码在响应生成完毕后才会执行。
+		context.Next()
+		// 当返回中间件链的时候标记为请求已发送
+		totalRequestSent.Add(1)
+		// 计算请求完成所耗时间
+		duration := time.Now().Sub(start).Microseconds()
+		// 写入完成耗时
+		totalProcessingTimeMicroseconds.Add(duration)
 	}
 }

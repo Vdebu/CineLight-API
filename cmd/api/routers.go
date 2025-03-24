@@ -12,7 +12,7 @@ func (app *application) routers() *gin.Engine {
 	// 使用路由分组 会自动以/v1作为前缀
 	v1 := router.Group("/v1")
 	// 使用中间件 执行顺序-> 确保日志记录在身份验证之前正确捕获身份认证错误的响应体信息
-	v1.Use(app.recoverPanic(), app.enableCORS(), app.rateLimiter(), gin.Logger(), app.authenticate())
+	v1.Use(app.metrics(), app.recoverPanic(), app.enableCORS(), app.rateLimiter(), gin.Logger(), app.authenticate())
 	{
 		// 添加监控内部变量的节点
 		v1.GET("/debug/vars", gin.WrapH(expvar.Handler()))
