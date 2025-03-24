@@ -3,11 +3,13 @@ package main
 import (
 	"context"
 	"database/sql"
+	"expvar"
 	"flag"
 	"greenlight.vdebu.net/internal/data"
 	"greenlight.vdebu.net/internal/jsonlog"
 	"greenlight.vdebu.net/internal/mailer"
 	"os"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -100,6 +102,22 @@ func main() {
 	logger.PrintInfo("db connection established...", nil)
 	// 初始化模型依赖
 	models := data.NewModels(db)
+	// 初始化显示服务器版本
+	expvar.NewString("version").Set(version)
+	// 初始化显示程序goroutine的状态(返回的结果必须要能编码成JSON否则在显示时会被忽略)
+	expvar.Publish("goroutine", expvar.Func(func() any {
+		// 返回启动的goroutine数量
+		return runtime.NumGoroutine()
+	}))
+	// 初始化显示数据库的状态
+	expvar.Publish("database", expvar.Func(func() any {
+		// 返回数据库的状态
+		return db.Stats()
+	}))
+	// 初始化显示当前时间
+	expvar.Publish("timestamp", expvar.Func(func() any {
+		return time.Now().Local()
+	}))
 	// 初始化依赖
 	app := &application{
 		config: cfg,    // 载入服务器配置
