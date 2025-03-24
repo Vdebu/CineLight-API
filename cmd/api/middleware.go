@@ -8,6 +8,7 @@ import (
 	"greenlight.vdebu.net/internal/data"
 	validator2 "greenlight.vdebu.net/internal/validator"
 	"net"
+	"net/http"
 	"strings"
 	"sync"
 	"time"
@@ -200,6 +201,9 @@ func (app *application) enableCORS() gin.HandlerFunc {
 		// 確保服務器不會將不同用戶的私有相應緩存並共享
 		// 注意這裡使用Add方法對表頭進行操作防止先前參數被覆蓋
 		context.Writer.Header().Add("Vary", "Origin")
+		// 添加表示动态变化的请求头
+		context.Writer.Header().Add("Vary", "Access-Control-Request-Method")
+		// Vary: Origin, Access-Control-Request-Method
 		// 從響應頭提取訪問源
 		origin := context.GetHeader("Origin")
 		// 如果origin不為空並且設置的信任的請求源再設置相應的許可
@@ -209,6 +213,16 @@ func (app *application) enableCORS() gin.HandlerFunc {
 				if origin == app.config.cors.trustedOrigins[i] {
 					// 處於列表中澤設置許可
 					context.Header("Access-Control-Allow-Origin", origin)
+					// 查看当前传入的请求是否是预检请求(OPTIONS)与CORS相关表头是否存在
+					if context.Request.Method == http.MethodOptions && context.GetHeader("Access-Control-Request-Method") != "" {
+						// 写入允许的请求方法与请求头
+						context.Header("Access-Control-Allow-Methods", "OPTIONS, POST, PUT, PATCH, DELETE")
+						context.Header("Access-Control-Allow-Headers", "Authorization, Content-Type")
+						// 返回正确状态码并提前结束预检请求
+						// 同样也需要调用Abort
+						context.AbortWithStatus(http.StatusNoContent)
+						return
+					}
 				}
 			}
 		}

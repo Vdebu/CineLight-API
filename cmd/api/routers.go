@@ -11,10 +11,16 @@ func (app *application) routers() *gin.Engine {
 	// 使用中间件 执行顺序-> 确保日志记录在身份验证之前正确捕获身份认证错误的响应体信息
 	v1.Use(app.recoverPanic(), app.enableCORS(), app.rateLimiter(), gin.Logger(), app.authenticate())
 	{
+
 		v1.GET("/healthcheck", app.healthcheckHandler)
 		// 用户相关
 		v1.POST("/users", app.registerUserHandler)
 		v1.PUT("/users/activated", app.activateUserHandler)
+		// gin默认没有为处理器注册OPTIONS方法 需要进行显示处理
+		// 添加空的OPTIONS处理方法仅用于处理预检请求
+		v1.OPTIONS("/tokens/authentication", func(c *gin.Context) {
+			// 空处理器，仅由中间件处理 CORS 头
+		})
 		// 激活账号
 		v1.POST("/tokens/authentication", app.createAuthenticationTokenHandler)
 		// 权限敏感的路由组
