@@ -22,7 +22,7 @@ func (app *application) errorResponse(c *gin.Context, status int, message interf
 	// 向响应体写入数据
 	app.writeJson(c, status, env, nil)
 	// 任何需要终止请求链的场景必须调用Abort方法终止后续处理流程
-	c.Abort()
+	c.AbortWithStatus(status)
 }
 
 // 记录服务器在运行时发生的错误(sql查询等非人为造成的错误)

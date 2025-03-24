@@ -4,12 +4,14 @@ import (
 	"errors"
 	"expvar"
 	"fmt"
+	"github.com/felixge/httpsnoop"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/time/rate"
 	"greenlight.vdebu.net/internal/data"
 	validator2 "greenlight.vdebu.net/internal/validator"
 	"net"
 	"net/http"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -238,22 +240,27 @@ func (app *application) metrics() gin.HandlerFunc {
 	totalRequestReceived := expvar.NewInt("total_requests_received")
 	totalRequestSent := expvar.NewInt("total_response_sent")
 	totalProcessingTimeMicroseconds := expvar.NewInt("total_processing_time_us")
-
+	// 使用三方库记录收到的HTTP code的种类与数目
+	totalRequestSentByStatus := expvar.NewMap("total_response_sent_by_status")
 	return func(context *gin.Context) {
-		// 记录开始时间
-		start := time.Now()
 		// 收到的请求数自增
 		totalRequestReceived.Add(1)
 		// 调用下一个中间件
 		// 将控制权传递给下一个中间件或者最终的路由处理器
 		// context.Next() 是阻塞调用，会顺序执行链中后续的所有中间件和最终的处理器。当这些处理器全部执行完毕后，控制权才会返回到当前中间件中继续执行下面的代码。
 		//也就是说，下半部分代码在响应生成完毕后才会执行。
-		context.Next()
+		//context.Next()
+
+		// 使用三方库捕获响应体代码请求持续时间与成功写入响应体的字节
+		metrics := httpsnoop.CaptureMetrics(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// 对Gin的next函数进行封装
+			context.Next()
+		}), context.Writer, context.Request)
 		// 当返回中间件链的时候标记为请求已发送
 		totalRequestSent.Add(1)
-		// 计算请求完成所耗时间
-		duration := time.Now().Sub(start).Microseconds()
 		// 写入完成耗时
-		totalProcessingTimeMicroseconds.Add(duration)
+		totalProcessingTimeMicroseconds.Add(metrics.Duration.Microseconds())
+		// 记录下当前请求的代码(将string转换成int)
+		totalRequestSentByStatus.Add(strconv.Itoa(metrics.Code), 1)
 	}
 }
