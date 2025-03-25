@@ -60,10 +60,17 @@ vendor:
 	@echo Vendoring dependencies...
 	go mod vendor
 
+## 存储当前时间
+current_time=$(shell powershell -Command "Get-Date -Format o")
+## 通过git获取相关版本信息
+git_description=$(shell powershell -Command "git describe --always --dirty --tags --long")
+## 存储交叉编译方法方便复用
+linker_flags='-s -X main.buildTime=${current_time} -X main.version=${git_description}'
+
 ## 交叉编译二进制文件
 build/api:
 	@echo Building cmd/api
-	go build -ldflags='-s' -o=./bin/api.exe ./cmd/api
+	go build -ldflags=${linker_flags} -o=./bin/api.exe ./cmd/api
 	set GOOS=linux
 	set GOARCH=amd64
-	go build -ldflags='-s' -o=./bin/linux_amd64/api ./cmd/api
+	go build -ldflags=${linker_flags} -o=./bin/linux_amd64/api ./cmd/api

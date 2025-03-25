@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"expvar"
 	"flag"
+	"fmt"
 	"greenlight.vdebu.net/internal/data"
 	"greenlight.vdebu.net/internal/jsonlog"
 	"greenlight.vdebu.net/internal/mailer"
@@ -17,8 +18,13 @@ import (
 	_ "github.com/lib/pq" //隐式导入sql驱动
 )
 
-// 定义当前版本信息 后续会使用自动生成的手段进行改进
-const version = " 1.0.0"
+var (
+	// 定义当前版本信息 后续会使用自动生成的手段进行改进
+	version string
+
+	// 用于存储编译时间(在编译文件的时候将外部变量嵌入)
+	buildTime string
+)
 
 // 存储服务器的配置信息
 type config struct {
@@ -87,8 +93,20 @@ func main() {
 		cfg.cors.trustedOrigins = strings.Fields(s)
 		return nil
 	})
+	// 判断当前是否仅展示版本信息
+	// 这里只要在参数中提到了-Version(不进行赋值)默认就是true
+	displayVersion := flag.Bool("version", false, "Display version and exit")
 	// 解析命令行参数
 	flag.Parse()
+	// 仅展示API的相关信息
+	if *displayVersion {
+		// 输出版本信息
+		fmt.Printf("Version:\t%s\n", version)
+		// 输出编译时间
+		fmt.Printf("Build time:\t%s\n", buildTime)
+		// 结束API的运行
+		os.Exit(0)
+	}
 	// 初始化服务器内部的日志工具
 	logger := jsonlog.New(os.Stdout, jsonlog.LevelInfo)
 	//logger.Println("dsn:", cfg.db.dsn)
