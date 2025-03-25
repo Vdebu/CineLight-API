@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -44,12 +43,12 @@ func (app *application) notFoundResponse(c *gin.Context) {
 }
 
 // 提示当前请求方法不被允许
-func (app *application) methodNotAllowedResponse(c *gin.Context) {
-	// 初始化Json字符串
-	msg := fmt.Sprintf("the %s method is not supported for this resource", c.Request.Method)
-	// 输出到响应体
-	app.errorResponse(c, http.StatusMethodNotAllowed, msg)
-}
+//func (app *application) methodNotAllowedResponse(c *gin.Context) {
+//	// 初始化Json字符串
+//	msg := fmt.Sprintf("the %s method is not supported for this resource", c.Request.Method)
+//	// 输出到响应体
+//	app.errorResponse(c, http.StatusMethodNotAllowed, msg)
+//}
 
 // 返回Bad request信息 人为造成的错误
 func (app *application) badRequestResponse(c *gin.Context, err error) {

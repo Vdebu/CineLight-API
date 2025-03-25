@@ -138,6 +138,10 @@ func (m *MovieModel) Delete(id int64) error {
 	}
 	// 获取受影响的行数检查是否删除成功
 	rowAffected, err := result.RowsAffected()
+	// 若查看信息的过程中发生错误则直接返回
+	if err != nil {
+		return err
+	}
 	// 如果没有行收到影响则为删除失败
 	if rowAffected == 0 {
 		return ErrRecordNotFound

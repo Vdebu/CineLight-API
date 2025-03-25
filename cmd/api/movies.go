@@ -148,6 +148,7 @@ func (app *application) deleteMovieHandler(c *gin.Context) {
 		default:
 			app.serverErrorResponse(c, err)
 		}
+		return
 	}
 	// 提示删除成功
 	app.writeJson(c, http.StatusOK, envelop{"movie": "movie successfully deleted"}, nil)

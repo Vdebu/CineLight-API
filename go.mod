@@ -3,6 +3,7 @@ module greenlight.vdebu.net
 go 1.23.4
 
 require (
+	github.com/felixge/httpsnoop v1.0.4
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-mail/mail v2.3.1+incompatible
 	github.com/lib/pq v1.10.9
@@ -14,7 +15,6 @@ require (
 	github.com/bytedance/sonic v1.12.10 // indirect
 	github.com/bytedance/sonic/loader v0.2.3 // indirect
 	github.com/cloudwego/base64x v0.1.5 // indirect
-	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
 	github.com/gin-contrib/sse v1.0.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
