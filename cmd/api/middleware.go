@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"github.com/felixge/httpsnoop"
 	"github.com/gin-gonic/gin"
+	"github.com/tomasen/realip"
 	"golang.org/x/time/rate"
 	"greenlight.vdebu.net/internal/data"
 	validator2 "greenlight.vdebu.net/internal/validator"
-	"net"
 	"net/http"
 	"strconv"
 	"strings"
@@ -66,17 +66,14 @@ func (app *application) rateLimiter() gin.HandlerFunc {
 		if app.config.limiter.enable {
 			// 若速率限制是开启的
 			// 提取每一个请求的ip
-			ip, _, err := net.SplitHostPort(context.Request.RemoteAddr)
-			if err != nil {
-				app.serverErrorResponse(context, err)
-				return
-			}
+			ip := realip.FromRequest(context.Request)
 			// 上锁 准备对clients进行操作
 			mu.Lock()
 			// 检查当前ip是否已存在 如果不存在就进行初始化
 			if _, found := clients[ip]; !found {
 				// 初始化 ip -> client
-				clients[ip] = &client{limiter: rate.NewLimiter(2, 4)}
+				// 使用配置文件中存储的数据对令牌桶进行初始化
+				clients[ip] = &client{limiter: rate.NewLimiter(rate.Limit(app.config.limiter.rps), app.config.limiter.burst)}
 			}
 			// 记录下当前访问的时间
 			clients[ip].lastSeen = time.Now()

@@ -9,7 +9,7 @@ else
 endif
 
 # 声明所有伪目标
-.PHONY: help confirm run/api db/psql db/migration/new db/migrations/up audit
+.PHONY: help confirm run/api db/psql db/migration/new db/migrations/up audit vendor
 
 ## help: 展示帮助信息
 help:
@@ -44,9 +44,6 @@ db/migrations/up: confirm
 
 ## 整理代码结构与启动相关测试
 audit:
-	@echo Tidying adn verifying module dependencies...
-	go mod tidy
-	go mod verify
 	@echo Formatting code...
 	go fmt ./...
 	@echo Vetting code...
@@ -54,3 +51,11 @@ audit:
 	staticcheck ./...
 	@echo Running tests...
 	go test -race -vet=off ./...
+
+## 整理依赖并将项目中用到的依赖包备份
+vendor:
+	@echo Tidying and verifying module dependencies
+	go mod tidy
+	go mod verify
+	@echo Vendoring dependencies...
+	go mod vendor
