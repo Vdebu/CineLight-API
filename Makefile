@@ -1,3 +1,6 @@
+# 导入环境变量
+include .envrc
+
 # 检测操作系统并设置变量
 ifeq ($(OS),Windows_NT)
     CONFIRM_CMD = powershell -Command "Write-Host 'Are you sure? [y/N]' -NoNewline; $$ans = Read-Host; if ($$ans.ToLower() -eq 'y') { exit 0 } else { exit 1 }"
@@ -21,9 +24,9 @@ help:
 confirm:
 	@$(CONFIRM_CMD)
 
-## run/api: 启动 API
+## run/api: 启动 API 并导入相应的环境变量
 run/api:
-	go run ./cmd/api
+	go run ./cmd/api -db-dsn=${GREENLIGHT_DB_DSN}
 
 ## db/psql: 连接数据库
 db/psql:
