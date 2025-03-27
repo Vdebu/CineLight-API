@@ -13,12 +13,11 @@ services:
       postgres:
         #等待数据库健康状态
         condition: service_healthy
-    #导入环境变量
+    #导入环境变量(必须与os.Getenv欲引用的变量一致${}里的是.env文件中的变量)
     environment:
 #    注意这里不是localhost而是容器中的服务名(容器间通信必须通过服务名)
-      #// 正确格式应指向PostgreSQL容器名称（如cl_psql）
-      #postgres://user:password@cinelightPostgres:5432/dbname?sslmode=disable
-    - DSN=${CINELIGHT_DB_DSN}
+      # 正确格式：postgres://用户名:密码@服务名:端口/数据库名?sslmode=disable
+    - CINELIGHT_DB_DSN=${CINELIGHT_DB_DSN}
   postgres:
     #设置镜像信息
     image: postgres:latest
@@ -27,7 +26,7 @@ services:
     #初始化数据库相关信息
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: 123456
       #postgres 服务未指定 POSTGRES_DB默认会创建名为postgres的数据库。
       POSTGRES_DB: cinelight
     #持久化数据存储

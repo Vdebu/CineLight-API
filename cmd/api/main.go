@@ -115,6 +115,7 @@ func main() {
 	logger := jsonlog.New(os.Stdout, jsonlog.LevelInfo)
 	//logger.Println("dsn:", cfg.db.dsn)
 	// 初始化数据库链接
+	logger.PrintInfo(fmt.Sprintf("'DSN':'%s'", cfg.db.dsn), nil)
 	db, err := openDB(cfg)
 	if err != nil {
 		// 使用PrintFatal输出错误信息并结束程序运行
@@ -163,6 +164,7 @@ func main() {
 
 // 尝试连接数据库 返回数据库连接池sql.DB
 func openDB(cfg config) (*sql.DB, error) {
+
 	// 传入数据库信息
 	db, err := sql.Open("postgres", cfg.db.dsn)
 	if err != nil {

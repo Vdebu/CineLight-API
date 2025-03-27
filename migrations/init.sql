@@ -8,6 +8,8 @@ DO $$
     END $$;
 -- 切换到目标数据库
 \connect cinelight;
+-- 防止部分类型无法使用
+CREATE EXTENSION IF NOT EXISTS citext;
 -- 建表语句
 CREATE TABLE IF NOT EXISTS movies(
                                      id bigserial PRIMARY KEY ,
