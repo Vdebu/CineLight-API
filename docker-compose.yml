@@ -1,0 +1,50 @@
+services:
+  backend:
+    container_name: CineLightBackend
+    build:
+      #定义构建镜像时的上下文路径
+      context: .
+      dockerfile: Dockerfile
+    #映射宿主机端口:容器端口
+    ports:
+      - "3939:3939"
+    #设置依赖的其他服务
+    depends_on:
+      postgres:
+        #等待数据库健康状态
+        condition: service_healthy
+    #导入环境变量
+    environment:
+#    注意这里不是localhost而是容器中的服务名(容器间通信必须通过服务名)
+      #// 正确格式应指向PostgreSQL容器名称（如cl_psql）
+      #postgres://user:password@cinelightPostgres:5432/dbname?sslmode=disable
+    - DSN=${CINELIGHT_DB_DSN}
+  postgres:
+    #设置镜像信息
+    image: postgres:latest
+    #设置容器名
+    container_name: CineLightPostgres
+    #初始化数据库相关信息
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      #postgres 服务未指定 POSTGRES_DB默认会创建名为postgres的数据库。
+      POSTGRES_DB: cinelight
+    #持久化数据存储
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations/init.sql:/docker-entrypoint-initdb.d/init.sql
+    #设置端口映射
+    ports:
+      - "5432:5432"
+    #healcheck
+    healthcheck:
+      #pg_isready是一个指令
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d cinelight" ]
+      #设置相关重试机制
+      interval: 10s
+      timeout: 5s
+      retries: 5
+#声明命名命名卷(数据持久化)
+volumes:
+  postgres_data:

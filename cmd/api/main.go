@@ -73,6 +73,10 @@ func main() {
 	// PostgreSQL驱动可能会使用 SSL连接如果服务器没有启用 SSL需要在 DSN 中添加参数来禁用SSL
 	// 在makefile中导入环境变量
 	flag.StringVar(&cfg.db.dsn, "db-dsn", "", "PostgreSQL DSN")
+	// 从docker-compose中获取环境变量
+	if os.Getenv("CINELIGHT_DB_DSN") != "" {
+		cfg.db.dsn = os.Getenv("CINELIGHT_DB_DSN")
+	}
 	// 服务器数据库连接池的配置
 	flag.IntVar(&cfg.db.maxOpenConns, "db-max-open-conns", 25, "PostgreSQL max open connections")
 	flag.IntVar(&cfg.db.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL max idle connections")
