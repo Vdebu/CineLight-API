@@ -1,0 +1,362 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="GoORMHelperCache">
+    <option name="schemaMapping">
+      <map>
+        <entry key="Filters">
+          <value>
+            <set>
+              <option value="file://$PROJECT_DIR$/internal/data/filters.go" />
+            </set>
+          </value>
+        </entry>
+        <entry key="Logger">
+          <value>
+            <set>
+              <option value="file://$PROJECT_DIR$/internal/jsonlog/jsonlog.go" />
+            </set>
+          </value>
+        </entry>
+        <entry key="Mailer">
+          <value>
+            <set>
+              <option value="file://$PROJECT_DIR$/internal/mailer/mailer.go" />
+            </set>
+          </value>
+        </entry>
+        <entry key="MetaData">
+          <value>
+            <set>
+              <option value="file://$PROJECT_DIR$/internal/data/filters.go" />
+            </set>
+          </value>
+        </entry>
+        <entry key="Models">
+          <value>
+            <set>
+              <option value="file://$PROJECT_DIR$/internal/data/models.go" />
+            </set>
+          </value>
+        </entry>
+        <entry key="Movie">
+          <value>
+            <set>
+              <option value="file://$PROJECT_DIR$/internal/data/movies.go" />
+            </set>
+          </value>
+        </entry>
+        <entry key="MovieModel">
+          <value>
+            <set>
+              <option value="file://$PROJECT_DIR$/internal/data/movies.go" />
+            </set>
+          </value>
+        </entry>
+        <entry key="PermissionModel">
+          <value>
+            <set>
+              <option value="file://$PROJECT_DIR$/internal/data/permissions.go" />
+            </set>
+          </value>
+        </entry>
+        <entry key="Token">
+          <value>
+            <set>
+              <option value="file://$PROJECT_DIR$/internal/data/tokens.go" />
+            </set>
+          </value>
+        </entry>
+        <entry key="TokenModel">
+          <value>
+            <set>
+              <option value="file://$PROJECT_DIR$/internal/data/tokens.go" />
+            </set>
+          </value>
+        </entry>
+        <entry key="User">
+          <value>
+            <set>
+              <option value="file://$PROJECT_DIR$/internal/data/users.go" />
+            </set>
+          </value>
+        </entry>
+        <entry key="UserModel">
+          <value>
+            <set>
+              <option value="file://$PROJECT_DIR$/internal/data/users.go" />
+            </set>
+          </value>
+        </entry>
+        <entry key="Validator">
+          <value>
+            <set>
+              <option value="file://$PROJECT_DIR$/internal/validator/validator.go" />
+            </set>
+          </value>
+        </entry>
+        <entry key="application">
+          <value>
+            <set>
+              <option value="file://$PROJECT_DIR$/cmd/api/main.go" />
+            </set>
+          </value>
+        </entry>
+        <entry key="client">
+          <value>
+            <set>
+              <option value="file://$PROJECT_DIR$/cmd/api/middleware.go" />
+            </set>
+          </value>
+        </entry>
+        <entry key="config">
+          <value>
+            <set>
+              <option value="file://$PROJECT_DIR$/cmd/api/main.go" />
+            </set>
+          </value>
+        </entry>
+        <entry key="password">
+          <value>
+            <set>
+              <option value="file://$PROJECT_DIR$/internal/data/users.go" />
+            </set>
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="scannedPathMapping">
+      <map>
+        <entry key="file://$PROJECT_DIR$/cmd/api/context.go">
+          <value>
+            <ScannedPath>
+              <option name="lastModified" value="1742444706629" />
+            </ScannedPath>
+          </value>
+        </entry>
+        <entry key="file://$PROJECT_DIR$/cmd/api/errors.go">
+          <value>
+            <ScannedPath>
+              <option name="lastModified" value="1742877306328" />
+            </ScannedPath>
+          </value>
+        </entry>
+        <entry key="file://$PROJECT_DIR$/cmd/api/healthcheck.go">
+          <value>
+            <ScannedPath>
+              <option name="lastModified" value="1742018826448" />
+            </ScannedPath>
+          </value>
+        </entry>
+        <entry key="file://$PROJECT_DIR$/cmd/api/helpers.go">
+          <value>
+            <ScannedPath>
+              <option name="lastModified" value="1742193783614" />
+            </ScannedPath>
+          </value>
+        </entry>
+        <entry key="file://$PROJECT_DIR$/cmd/api/main.go">
+          <value>
+            <ScannedPath>
+              <option name="lastModified" value="1743087388617" />
+              <option name="schema">
+                <list>
+                  <option value="config" />
+                  <option value="application" />
+                </list>
+              </option>
+            </ScannedPath>
+          </value>
+        </entry>
+        <entry key="file://$PROJECT_DIR$/cmd/api/middleware.go">
+          <value>
+            <ScannedPath>
+              <option name="lastModified" value="1742900580134" />
+              <option name="schema">
+                <list>
+                  <option value="client" />
+                </list>
+              </option>
+            </ScannedPath>
+          </value>
+        </entry>
+        <entry key="file://$PROJECT_DIR$/cmd/api/movies.go">
+          <value>
+            <ScannedPath>
+              <option name="lastModified" value="1742898685597" />
+            </ScannedPath>
+          </value>
+        </entry>
+        <entry key="file://$PROJECT_DIR$/cmd/api/routers.go">
+          <value>
+            <ScannedPath>
+              <option name="lastModified" value="1742800675104" />
+            </ScannedPath>
+          </value>
+        </entry>
+        <entry key="file://$PROJECT_DIR$/cmd/api/server.go">
+          <value>
+            <ScannedPath>
+              <option name="lastModified" value="1743262575860" />
+            </ScannedPath>
+          </value>
+        </entry>
+        <entry key="file://$PROJECT_DIR$/cmd/api/tokens.go">
+          <value>
+            <ScannedPath>
+              <option name="lastModified" value="1742357321735" />
+            </ScannedPath>
+          </value>
+        </entry>
+        <entry key="file://$PROJECT_DIR$/cmd/api/users.go">
+          <value>
+            <ScannedPath>
+              <option name="lastModified" value="1742698401160" />
+            </ScannedPath>
+          </value>
+        </entry>
+        <entry key="file://$PROJECT_DIR$/internal/data/filters.go">
+          <value>
+            <ScannedPath>
+              <option name="lastModified" value="1741850701440" />
+              <option name="schema">
+                <list>
+                  <option value="Filters" />
+                  <option value="MetaData" />
+                </list>
+              </option>
+            </ScannedPath>
+          </value>
+        </entry>
+        <entry key="file://$PROJECT_DIR$/internal/data/models.go">
+          <value>
+            <ScannedPath>
+              <option name="lastModified" value="1742470478789" />
+              <option name="schema">
+                <list>
+                  <option value="Models" />
+                </list>
+              </option>
+            </ScannedPath>
+          </value>
+        </entry>
+        <entry key="file://$PROJECT_DIR$/internal/data/movies.go">
+          <value>
+            <ScannedPath>
+              <option name="lastModified" value="1742899197208" />
+              <option name="schema">
+                <list>
+                  <option value="Movie" />
+                  <option value="MovieModel" />
+                </list>
+              </option>
+            </ScannedPath>
+          </value>
+        </entry>
+        <entry key="file://$PROJECT_DIR$/internal/data/permissions.go">
+          <value>
+            <ScannedPath>
+              <option name="lastModified" value="1742698113391" />
+              <option name="schema">
+                <list>
+                  <option value="PermissionModel" />
+                </list>
+              </option>
+            </ScannedPath>
+          </value>
+        </entry>
+        <entry key="file://$PROJECT_DIR$/internal/data/runtime.go">
+          <value>
+            <ScannedPath>
+              <option name="lastModified" value="1741421782746" />
+            </ScannedPath>
+          </value>
+        </entry>
+        <entry key="file://$PROJECT_DIR$/internal/data/tokens.go">
+          <value>
+            <ScannedPath>
+              <option name="lastModified" value="1742297401418" />
+              <option name="schema">
+                <list>
+                  <option value="Token" />
+                  <option value="TokenModel" />
+                </list>
+              </option>
+            </ScannedPath>
+          </value>
+        </entry>
+        <entry key="file://$PROJECT_DIR$/internal/data/users.go">
+          <value>
+            <ScannedPath>
+              <option name="lastModified" value="1742301000924" />
+              <option name="schema">
+                <list>
+                  <option value="User" />
+                  <option value="password" />
+                  <option value="UserModel" />
+                </list>
+              </option>
+            </ScannedPath>
+          </value>
+        </entry>
+        <entry key="file://$PROJECT_DIR$/internal/jsonlog/jsonlog.go">
+          <value>
+            <ScannedPath>
+              <option name="lastModified" value="1742216197909" />
+              <option name="schema">
+                <list>
+                  <option value="Logger" />
+                </list>
+              </option>
+            </ScannedPath>
+          </value>
+        </entry>
+        <entry key="file://$PROJECT_DIR$/internal/mailer/mailer.go">
+          <value>
+            <ScannedPath>
+              <option name="lastModified" value="1742191331501" />
+              <option name="schema">
+                <list>
+                  <option value="Mailer" />
+                </list>
+              </option>
+            </ScannedPath>
+          </value>
+        </entry>
+        <entry key="file://$PROJECT_DIR$/internal/validator/validator.go">
+          <value>
+            <ScannedPath>
+              <option name="lastModified" value="1741423360149" />
+              <option name="schema">
+                <list>
+                  <option value="Validator" />
+                </list>
+              </option>
+            </ScannedPath>
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="tableStructMapping">
+      <map>
+        <entry key="application" value="application" />
+        <entry key="client" value="client" />
+        <entry key="config" value="config" />
+        <entry key="filters" value="Filters" />
+        <entry key="logger" value="Logger" />
+        <entry key="mailer" value="Mailer" />
+        <entry key="meta_data" value="MetaData" />
+        <entry key="models" value="Models" />
+        <entry key="movie" value="Movie" />
+        <entry key="movie_model" value="MovieModel" />
+        <entry key="password" value="password" />
+        <entry key="permission_model" value="PermissionModel" />
+        <entry key="token" value="Token" />
+        <entry key="token_model" value="TokenModel" />
+        <entry key="user" value="User" />
+        <entry key="user_model" value="UserModel" />
+        <entry key="validator" value="Validator" />
+      </map>
+    </option>
+    <option name="lastTimeChecked" value="1743262564534" />
+  </component>
+</project>
