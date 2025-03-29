@@ -44,6 +44,7 @@ func (app *application) server() error {
 		if err != nil {
 			// 若发生错误直接将其存入通道并返回
 			shutdownError <- err
+			return
 		}
 		// 服务器关闭成功等待后台进程全部结束完毕
 		app.logger.PrintInfo("completing background tasks", map[string]string{
