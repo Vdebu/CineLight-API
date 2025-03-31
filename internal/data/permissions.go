@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"github.com/lib/pq"
-	"log"
 	"time"
 )
 
@@ -14,7 +13,7 @@ type Permissions []string
 // 检测目前要求的权限是否在查询到的权限中
 func (p Permissions) Include(code string) bool {
 	for i := range p {
-		log.Println(i)
+		//log.Println(i)
 		if p[i] == code {
 			return true
 		}
@@ -57,7 +56,7 @@ func (m PermissionModel) GetAllForUser(userID int64) (Permissions, error) {
 		if err != nil {
 			return nil, err
 		}
-		log.Println(permission)
+		//log.Println(permission)
 		// 将读取到的记录加入切片
 		permissions = append(permissions, permission)
 	}

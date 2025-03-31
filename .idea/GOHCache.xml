@@ -157,7 +157,7 @@
         <entry key="file://$PROJECT_DIR$/cmd/api/main.go">
           <value>
             <ScannedPath>
-              <option name="lastModified" value="1743087388617" />
+              <option name="lastModified" value="1743326796717" />
               <option name="schema">
                 <list>
                   <option value="config" />
@@ -182,14 +182,14 @@
         <entry key="file://$PROJECT_DIR$/cmd/api/movies.go">
           <value>
             <ScannedPath>
-              <option name="lastModified" value="1742898685597" />
+              <option name="lastModified" value="1743391244025" />
             </ScannedPath>
           </value>
         </entry>
         <entry key="file://$PROJECT_DIR$/cmd/api/routers.go">
           <value>
             <ScannedPath>
-              <option name="lastModified" value="1742800675104" />
+              <option name="lastModified" value="1743391160919" />
             </ScannedPath>
           </value>
         </entry>
@@ -255,7 +255,7 @@
         <entry key="file://$PROJECT_DIR$/internal/data/permissions.go">
           <value>
             <ScannedPath>
-              <option name="lastModified" value="1742698113391" />
+              <option name="lastModified" value="1743390873049" />
               <option name="schema">
                 <list>
                   <option value="PermissionModel" />
@@ -357,6 +357,6 @@
         <entry key="validator" value="Validator" />
       </map>
     </option>
-    <option name="lastTimeChecked" value="1743262564534" />
+    <option name="lastTimeChecked" value="1743389982655" />
   </component>
 </project>

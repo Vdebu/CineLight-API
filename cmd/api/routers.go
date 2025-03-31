@@ -40,6 +40,7 @@ func (app *application) routers() *gin.Engine {
 				movies.GET("/movies/:id", app.requirePermission("movie:read"), app.showMovieHandler)
 				// 使用PATCH方法更新信息(一般全部更新用PUT)
 				movies.PATCH("/movies/:id", app.requirePermission("movie:write"), app.updateMovieHandler)
+				movies.PATCH("/movies/test/:id", app.requirePermission("movie:write"), app.updateMovieTestHandler)
 				movies.DELETE("/movies/:id", app.requirePermission("movie:write"), app.deleteMovieHandler)
 				movies.GET("/movies", app.requirePermission("movie:read"), app.listMoviesHandler)
 			}

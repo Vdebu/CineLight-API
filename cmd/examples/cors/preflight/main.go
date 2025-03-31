@@ -49,7 +49,8 @@ const html = `
 func main() {
 	addr := flag.String("addr", ":9393", "Server address")
 	flag.Parse()
-
+	// 于API启动时设置可信源
+	// -cors-trusted-origins=http://localhost:9393
 	log.Printf("starting server on %s", *addr)
 	err := http.ListenAndServe(*addr, http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		writer.Write([]byte(html))

@@ -125,7 +125,12 @@ func (app *application) updateMovieHandler(c *gin.Context) {
 	// 更新数据库中的数据
 	err = app.models.Movies.Update(movie)
 	if err != nil {
-		app.serverErrorResponse(c, err)
+		switch {
+		case errors.Is(err, data.ErrEditConflict):
+			app.editConflictResponse(c)
+		default:
+			app.serverErrorResponse(c, err)
+		}
 		return
 	}
 	// 向响应体输出更改成功后的新数据
@@ -189,4 +194,72 @@ func (app *application) listMoviesHandler(c *gin.Context) {
 	}
 	// 将查询到的值按输入逻辑输出
 	app.writeJson(c, http.StatusOK, envelop{"movies": movies, "metadata": metaData}, nil)
+}
+func (app *application) updateMovieTestHandler(c *gin.Context) {
+	id, err := app.readIDParam(c)
+	if err != nil {
+		app.notFoundResponse(c)
+	}
+	movie, err := app.models.Movies.Get(id)
+	if err != nil {
+		// 检查错误类型 在这里可以用switch进行检查
+		switch {
+		case errors.Is(err, data.ErrEditConflict):
+			// 检查错误是否是修改冲突造成的
+			app.editConflictResponse(c)
+		default:
+			app.serverErrorResponse(c, err)
+		}
+		return
+	}
+	// 从请求体中获取新的信息 使用指针存储输入的数据(区分nil与空值)
+	var input struct {
+		Title   *string       `json:"title"`
+		Year    *int32        `json:"year"`
+		Runtime *data.Runtime `json:"runtime"`
+		Genres  []string      `json:"genres"`
+		Version *int32        `json:"version"`
+	}
+	err = app.readJSON(c, &input)
+	if err != nil {
+		// 输入了错误的信息 bad request
+		app.badRequestResponse(c, err)
+		return
+	}
+	// 判断是否用户输入的再将从数据库中提取到的信息替换为最新的信息
+	if input.Title != nil {
+		movie.Title = *input.Title
+	}
+	if input.Year != nil {
+		movie.Year = *input.Year
+	}
+	if input.Runtime != nil {
+		movie.Runtime = *input.Runtime
+	}
+	if input.Genres != nil {
+		movie.Genres = input.Genres
+	}
+	if input.Version != nil {
+		movie.Version = *input.Version
+	}
+	// 检查输入的信息是否有效
+	v := validator.New()
+	if data.ValidateMovie(v, movie); !v.Valid() {
+		// 验证失败 传入验证器的ErrorsField输出错误提示
+		app.failedValidationResponse(c, v.Errors)
+		return
+	}
+	// 更新数据库中的数据
+	err = app.models.Movies.Update(movie)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrEditConflict):
+			app.editConflictResponse(c)
+		default:
+			app.serverErrorResponse(c, err)
+		}
+		return
+	}
+	// 向响应体输出更改成功后的新数据
+	app.writeJson(c, http.StatusOK, envelop{"movie": movie}, nil)
 }

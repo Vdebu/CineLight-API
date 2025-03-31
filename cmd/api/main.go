@@ -76,6 +76,8 @@ func main() {
 	// 从docker-compose中获取环境变量
 	if os.Getenv("CINELIGHT_DB_DSN") != "" {
 		cfg.db.dsn = os.Getenv("CINELIGHT_DB_DSN")
+	} else {
+		cfg.db.dsn = os.Getenv("GREENLIGHT_DB_DSN")
 	}
 	// 服务器数据库连接池的配置
 	flag.IntVar(&cfg.db.maxOpenConns, "db-max-open-conns", 25, "PostgreSQL max open connections")
@@ -185,7 +187,6 @@ func openDB(cfg config) (*sql.DB, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	// 超时后关闭连接
 	defer cancel()
-
 	// 检查连接是否建立
 	// 如果在5秒内没有ping成功就会返回错误
 	err = db.PingContext(ctx)
