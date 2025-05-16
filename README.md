@@ -65,7 +65,7 @@ cd CineLight-API
 2. 创建 `.envrc` 文件并设置环境变量
 
 ```
-export GREENLIGHT_DB_DSN="postgres://postgres:123456@localhost:5432/cinelight?sslmode=disable"
+export CINELIGHT_DB_DSN="postgres://postgres:123456@localhost:5432/cinelight?sslmode=disable"
 ```
 
 3. 启动数据库（使用 Docker Compose）
