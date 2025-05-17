@@ -144,6 +144,3 @@ CineLight API 使用 Makefile 简化常见操作：
 - `-smtp-*` - SMTP 服务器配置
 - `-cors-trusted-origins` - 受信任的 CORS 来源
 
-## 许可证
-
-[许可证信息] 
